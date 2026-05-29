@@ -645,6 +645,218 @@ footer {
 }
 #chat-send:hover { transform: scale(1.08); box-shadow: 0 4px 15px rgba(45,156,255,0.4); }
 #chat-send svg { width:16px;height:16px;color:white; }
+
+/* ─── ADMIN ICON ─── */
+.admin-icon-btn {
+  position: fixed; top: 1.1rem; right: 1.1rem; z-index: 200;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(10,15,46,0.85);
+  border: 1px solid rgba(45,156,255,0.22);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.3s;
+  color: var(--gray);
+}
+.admin-icon-btn:hover { border-color: var(--electric); color: var(--electric); box-shadow: 0 0 14px rgba(45,156,255,0.2); }
+
+/* ─── ADMIN MODAL ─── */
+.admin-overlay {
+  display: none; position: fixed; inset: 0; z-index: 9999;
+  background: rgba(4,8,22,0.92); backdrop-filter: blur(8px);
+  align-items: center; justify-content: center;
+}
+.admin-overlay.open { display: flex; }
+.admin-modal {
+  background: #0d1535; border: 1px solid rgba(45,156,255,0.22);
+  border-radius: 8px; width: 90%; max-width: 620px;
+  max-height: 90vh; overflow-y: auto;
+  padding: 2rem; position: relative;
+  animation: fadeUp 0.3s ease;
+}
+.admin-modal-title {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem;
+  letter-spacing: 0.1em; color: var(--white); margin-bottom: 0.3rem;
+}
+.admin-modal-sub { font-size: 0.78rem; color: var(--gray); margin-bottom: 1.8rem; }
+.admin-close {
+  position: absolute; top: 1rem; right: 1.2rem;
+  background: none; border: none; color: var(--gray);
+  font-size: 1.4rem; cursor: pointer; transition: color 0.2s;
+}
+.admin-close:hover { color: var(--white); }
+.admin-field { margin-bottom: 1rem; }
+.admin-field label { display: block; font-size: 0.78rem; letter-spacing: 0.12em; color: var(--gray); text-transform: uppercase; margin-bottom: 0.4rem; }
+.admin-field input {
+  width: 100%; background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(45,156,255,0.2); border-radius: 6px;
+  padding: 0.65rem 1rem; color: var(--white);
+  font-family: 'Outfit', sans-serif; font-size: 0.9rem; outline: none;
+  transition: border-color 0.3s;
+}
+.admin-field input:focus { border-color: rgba(45,156,255,0.55); }
+.admin-login-btn {
+  width: 100%; padding: 0.8rem;
+  background: linear-gradient(135deg, var(--blue2), var(--electric));
+  border: none; border-radius: 6px; color: white;
+  font-family: 'Rajdhani', sans-serif; font-weight: 700;
+  font-size: 1rem; letter-spacing: 0.12em; text-transform: uppercase;
+  cursor: pointer; transition: opacity 0.3s; margin-top: 0.5rem;
+}
+.admin-login-btn:hover { opacity: 0.88; }
+.admin-error { color: #ff6b6b; font-size: 0.8rem; margin-top: 0.5rem; display: none; }
+
+/* admin gallery editor */
+.admin-gallery-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+.admin-gallery-slot {
+  position: relative; border-radius: 6px; overflow: hidden;
+  aspect-ratio: 4/3; background: rgba(255,255,255,0.04);
+  border: 1px dashed rgba(45,156,255,0.25); cursor: pointer;
+  transition: border-color 0.3s;
+}
+.admin-gallery-slot:hover { border-color: var(--electric); }
+.admin-gallery-slot img { width:100%; height:100%; object-fit:cover; }
+.admin-gallery-slot .slot-overlay {
+  position: absolute; inset: 0; background: rgba(10,15,46,0.7);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0.4rem; opacity: 0; transition: opacity 0.3s;
+}
+.admin-gallery-slot:hover .slot-overlay { opacity: 1; }
+.slot-overlay span { font-size: 0.7rem; color: var(--electric); letter-spacing: 0.1em; }
+.slot-overlay svg { color: var(--electric); }
+.admin-gallery-slot input[type=file] { display: none; }
+.admin-slot-label {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(6,11,32,0.85); padding: 0.35rem 0.5rem;
+  font-size: 0.65rem; color: var(--gray); letter-spacing: 0.08em; text-align:center;
+}
+.admin-save-btn {
+  width:100%; padding: 0.75rem;
+  background: linear-gradient(135deg, #0a5f0a, #15a515);
+  border: none; border-radius: 6px; color: white;
+  font-family: 'Rajdhani', sans-serif; font-weight: 700;
+  font-size: 1rem; letter-spacing: 0.12em; cursor: pointer;
+  transition: opacity 0.3s; text-transform: uppercase;
+}
+.admin-save-btn:hover { opacity: 0.88; }
+.admin-logout-btn {
+  width:100%; padding: 0.55rem; margin-top: 0.6rem;
+  background: rgba(255,50,50,0.08); border: 1px solid rgba(255,80,80,0.25);
+  border-radius: 6px; color: #ff6b6b;
+  font-family: 'Rajdhani', sans-serif; font-weight: 600;
+  font-size: 0.85rem; letter-spacing: 0.1em; cursor: pointer;
+  transition: all 0.3s; text-transform: uppercase;
+}
+.admin-logout-btn:hover { background: rgba(255,50,50,0.18); }
+.admin-tip { font-size: 0.72rem; color: var(--gray); line-height: 1.7; padding: 0.8rem; background: rgba(45,156,255,0.05); border-radius: 6px; border: 1px solid rgba(45,156,255,0.1); margin-bottom: 1rem; }
+.admin-tip strong { color: var(--electric); }
+
+/* ─── HAMBURGER MOBILE NAV ─── */
+.nav-hamburger {
+  display: none; flex-direction: column; gap: 5px;
+  background: none; border: none; cursor: pointer; padding: 4px; z-index: 110;
+}
+.nav-hamburger span {
+  display: block; width: 24px; height: 2px;
+  background: var(--white); border-radius: 2px; transition: all 0.3s;
+}
+.nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-hamburger.open span:nth-child(2) { opacity: 0; }
+.nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+.mobile-nav-menu {
+  display: none; position: fixed; inset: 0; top: 60px; z-index: 99;
+  background: rgba(6,11,32,0.98); backdrop-filter: blur(20px);
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 2.5rem; padding: 2rem;
+}
+.mobile-nav-menu.open { display: flex; }
+.mobile-nav-menu a {
+  color: var(--white); text-decoration: none;
+  font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem;
+  letter-spacing: 0.12em; transition: color 0.3s;
+}
+.mobile-nav-menu a:hover { color: var(--electric); }
+.mobile-nav-menu .mobile-cta {
+  padding: 0.8rem 2.5rem; border: 1px solid var(--electric);
+  color: var(--electric); border-radius: 2px;
+  font-family: 'Rajdhani', sans-serif; font-weight: 700;
+  font-size: 1rem; letter-spacing: 0.15em; text-transform: uppercase;
+  background: none; cursor: pointer; transition: all 0.3s;
+}
+.mobile-nav-menu .mobile-cta:hover { background: var(--electric); color: var(--navy); }
+
+/* ─── FULL MOBILE RESPONSIVE ─── */
+@media (max-width: 900px) {
+  /* NAV */
+  nav { padding: 1rem 1.4rem; }
+  .nav-links { display: none; }
+  .nav-cta { display: none; }
+  .nav-hamburger { display: flex; }
+
+  /* HERO */
+  .hero { padding: 6rem 1.4rem 3rem; min-height: 100svh; align-items: flex-start; }
+  .mol-orbit { display: none; }
+  .hero-content { max-width: 100%; }
+  .hero-title { font-size: clamp(5rem, 20vw, 7rem); }
+  .hero-title-sub { font-size: clamp(1.1rem, 5vw, 1.8rem); letter-spacing: 0.45em; }
+  .hero-desc { font-size: 0.92rem; max-width: 100%; }
+  .hero-buttons { flex-direction: column; gap: 0.8rem; }
+  .btn-primary, .btn-secondary { width: 100%; text-align: center; padding: 0.9rem 1.5rem; }
+
+  /* SECTIONS */
+  section { padding: 4rem 1.4rem !important; }
+  .section-title { font-size: clamp(2rem, 8vw, 3rem) !important; }
+
+  /* PRODUCTS */
+  .products-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.9rem !important; }
+  .products-header { flex-direction: column; gap: 1rem; }
+  .products-header p { max-width: 100% !important; }
+
+  /* GALLERY */
+  .gallery { grid-template-columns: 1fr !important; grid-template-rows: auto !important; }
+  .gallery-item:first-child { grid-row: auto !important; height: 260px !important; }
+  .gallery-item { height: 220px !important; }
+  #gallery > div:last-child { grid-template-columns: 1fr 1fr !important; }
+
+  /* SERVICES */
+  .services-grid { grid-template-columns: 1fr !important; gap: 1rem !important; }
+
+  /* ABOUT */
+  .about { grid-template-columns: 1fr !important; gap: 2.5rem !important; }
+  .about-img-main { height: 260px !important; object-fit: cover; }
+  .about-img-accent { display: none; }
+
+  /* CONTACT */
+  .contact-grid { grid-template-columns: 1fr !important; gap: 2rem !important; }
+
+  /* STATS */
+  .stats-row { flex-wrap: wrap; }
+  .stat-item { flex: 1 1 45%; border-right: none !important; border-bottom: 1px solid rgba(45,156,255,0.1); }
+
+  /* CHAT */
+  #chat-toggle { bottom: 1.2rem; right: 1.2rem; width: 52px; height: 52px; }
+  #chat-panel { width: calc(100vw - 2rem) !important; right: 1rem !important; bottom: 5.5rem !important; height: 65vh !important; }
+
+  /* TICKER */
+  .chem-ticker-inner { animation-duration: 20s; }
+
+  /* CTA */
+  .cta-strip { padding: 3rem 1.4rem !important; }
+  .cta-strip .section-title { font-size: 2rem !important; }
+  .cta-strip .hero-buttons { flex-direction: column; align-items: center; }
+
+  /* ADMIN */
+  .admin-gallery-grid { grid-template-columns: repeat(2, 1fr); }
+  .admin-icon-btn { top: 0.8rem; right: 4.5rem; }
+}
+
+@media (max-width: 480px) {
+  .hero-title { font-size: 5rem; }
+  .products-grid { grid-template-columns: 1fr !important; }
+  #gallery > div:last-child { grid-template-columns: 1fr !important; }
+  .admin-gallery-grid { grid-template-columns: 1fr 1fr; }
+}
 </style>
 </head>
 <body>
@@ -665,7 +877,64 @@ footer {
     <li><a href="#contact">Contact</a></li>
   </ul>
   <button class="nav-cta" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Request Quote</button>
+  <button class="nav-hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-nav-menu" id="mobileMenu">
+  <a href="#about"    onclick="closeMobileNav()">About</a>
+  <a href="#products" onclick="closeMobileNav()">Products</a>
+  <a href="#services" onclick="closeMobileNav()">Services</a>
+  <a href="#gallery"  onclick="closeMobileNav()">Gallery</a>
+  <a href="#contact"  onclick="closeMobileNav()">Contact</a>
+  <button class="mobile-cta" onclick="closeMobileNav();document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Request Quote</button>
+</div>
+
+<!-- ADMIN ICON -->
+<button class="admin-icon-btn" id="adminIconBtn" onclick="openAdmin()" title="Admin">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+  </svg>
+</button>
+
+<!-- ADMIN MODAL -->
+<div class="admin-overlay" id="adminOverlay">
+  <div class="admin-modal">
+    <button class="admin-close" onclick="closeAdmin()">✕</button>
+
+    <!-- LOGIN VIEW -->
+    <div id="adminLogin">
+      <div class="admin-modal-title">Admin Login</div>
+      <div class="admin-modal-sub">Manage gallery images for Novax Chemical</div>
+      <div class="admin-field">
+        <label>Username</label>
+        <input type="text" id="adminUser" placeholder="admin" autocomplete="username"/>
+      </div>
+      <div class="admin-field">
+        <label>Password</label>
+        <input type="password" id="adminPass" placeholder="••••••••" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter')doAdminLogin()"/>
+      </div>
+      <div class="admin-error" id="adminErr">Incorrect credentials. Try again.</div>
+      <button class="admin-login-btn" onclick="doAdminLogin()">Login →</button>
+    </div>
+
+    <!-- GALLERY EDITOR VIEW -->
+    <div id="adminPanel" style="display:none;">
+      <div class="admin-modal-title">Gallery Manager</div>
+      <div class="admin-modal-sub">Click any image slot to upload a new photo from your device.</div>
+      <div class="admin-tip">
+        <strong>📌 Tip:</strong> Images are saved in your browser's local storage and appear instantly on the site. 
+        To make changes permanent across all devices, upload the image files to your GitHub repo and update the src URLs in <strong>index.html</strong>.
+      </div>
+      <div class="admin-gallery-grid" id="adminGalleryGrid"></div>
+      <button class="admin-save-btn" onclick="adminSaveGallery()">✓ Save Changes</button>
+      <button class="admin-logout-btn" onclick="adminLogout()">Logout</button>
+    </div>
+  </div>
+</div>
 
 <!-- HERO -->
 <section class="hero" style="padding-top:80px;">
@@ -961,64 +1230,73 @@ footer {
 <section id="gallery">
   <div class="section-tag reveal">Visual Identity</div>
   <h2 class="section-title reveal" style="margin-bottom:2.5rem;">Inside the World<br>of Novax</h2>
-  <div class="gallery reveal">
+  <div class="gallery reveal" id="mainGallery">
     <div class="gallery-item">
-      <img src="https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=900&q=80" alt="Chemical Lab"
-           onerror="this.src='https://images.unsplash.com/photo-1576086213369-97a306d36557?w=800&q=80'">
+      <img data-slot="0"
+        src="https://images.unsplash.com/photo-1563213126-a4273aed2016?w=900&q=80"
+        alt="Chemical Lab Glassware">
+      <div class="gallery-item-formula">LAB</div>
+      <div class="gallery-item-overlay"><div class="gallery-item-label">Chemical Research Laboratory</div></div>
+    </div>
+    <div class="gallery-item">
+      <img data-slot="1"
+        src="https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=700&q=80"
+        alt="Lab Flasks">
       <div class="gallery-item-formula">HCl</div>
-      <div class="gallery-item-overlay"><div class="gallery-item-label">Chemical Research Lab</div></div>
+      <div class="gallery-item-overlay"><div class="gallery-item-label">Acid & Reagent Jars</div></div>
     </div>
     <div class="gallery-item">
-      <img src="https://images.unsplash.com/photo-1603126857599-f6e157fa2fe6?w=700&q=80" alt="Industrial Chemicals"
-           onerror="this.src='https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?w=700&q=80'">
-      <div class="gallery-item-formula">H₂SO₄</div>
-      <div class="gallery-item-overlay"><div class="gallery-item-label">Industrial Acid Storage</div></div>
+      <img data-slot="2"
+        src="https://images.unsplash.com/photo-1576671081837-49000212a370?w=700&q=80"
+        alt="Chemical Drums Storage">
+      <div class="gallery-item-formula">IBC</div>
+      <div class="gallery-item-overlay"><div class="gallery-item-label">Industrial Drum Storage</div></div>
     </div>
     <div class="gallery-item">
-      <img src="https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=700&q=80" alt="UAE Skyline"
-           onerror="this.src='https://images.unsplash.com/photo-1546768292-fb12f6c92568?w=700&q=80'">
-      <div class="gallery-item-formula">UAE</div>
-      <div class="gallery-item-overlay"><div class="gallery-item-label">Ajman Free Zone HQ</div></div>
+      <img data-slot="3"
+        src="https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=700&q=80"
+        alt="Chemical Factory">
+      <div class="gallery-item-formula">MFG</div>
+      <div class="gallery-item-overlay"><div class="gallery-item-label">Production Facility</div></div>
     </div>
     <div class="gallery-item">
-      <img src="https://images.unsplash.com/photo-1554475901-4538ddfbccc2?w=700&q=80" alt="Lab Beakers"
-           onerror="this.src='https://images.unsplash.com/photo-1582719508461-905c673771fd?w=700&q=80'">
-      <div class="gallery-item-formula">NaOH</div>
-      <div class="gallery-item-overlay"><div class="gallery-item-label">Caustic Soda Processing</div></div>
-    </div>
-    <div class="gallery-item">
-      <img src="https://images.unsplash.com/photo-1578496479531-32e296d5c6e1?w=700&q=80" alt="Chemical Plant"
-           onerror="this.src='https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=700&q=80'">
-      <div class="gallery-item-formula">NH₃</div>
-      <div class="gallery-item-overlay"><div class="gallery-item-label">Industrial Supply Chain</div></div>
+      <img data-slot="4"
+        src="https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=700&q=80"
+        alt="Pharmaceutical Chemicals">
+      <div class="gallery-item-formula">API</div>
+      <div class="gallery-item-overlay"><div class="gallery-item-label">Pharma Grade Chemicals</div></div>
     </div>
   </div>
 
   <!-- Second gallery row -->
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1rem;margin-top:1rem;">
-    <div class="gallery-item" style="height:200px;">
-      <img src="https://images.unsplash.com/photo-1613665813446-82a78c468a1d?w=600&q=80" alt="Test tubes"
-           onerror="this.src='https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=600&q=80'">
-      <div class="gallery-item-formula">IPA</div>
-      <div class="gallery-item-overlay"><div class="gallery-item-label">Pharma Grade Solvents</div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1rem;margin-top:1rem;" id="subGallery">
+    <div class="gallery-item" style="height:210px;">
+      <img data-slot="5"
+        src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=600&q=80"
+        alt="Lab Test Tubes">
+      <div class="gallery-item-formula">NaOH</div>
+      <div class="gallery-item-overlay"><div class="gallery-item-label">Reagent Test Tubes</div></div>
     </div>
-    <div class="gallery-item" style="height:200px;">
-      <img src="https://images.unsplash.com/photo-1564982752979-3f7bc974d29a?w=600&q=80" alt="Shipping"
-           onerror="this.src='https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=600&q=80'">
-      <div class="gallery-item-formula">EXP</div>
-      <div class="gallery-item-overlay"><div class="gallery-item-label">Global Export Network</div></div>
+    <div class="gallery-item" style="height:210px;">
+      <img data-slot="6"
+        src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=80"
+        alt="Industrial Tanks">
+      <div class="gallery-item-formula">BULK</div>
+      <div class="gallery-item-overlay"><div class="gallery-item-label">Bulk Liquid Storage Tanks</div></div>
     </div>
-    <div class="gallery-item" style="height:200px;">
-      <img src="https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=600&q=80" alt="Fertilizer"
-           onerror="this.src='https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&q=80'">
-      <div class="gallery-item-formula">Urea</div>
-      <div class="gallery-item-overlay"><div class="gallery-item-label">Agricultural Chemicals</div></div>
+    <div class="gallery-item" style="height:210px;">
+      <img data-slot="7"
+        src="https://images.unsplash.com/photo-1604754742629-3e5728249d73?w=600&q=80"
+        alt="Chemical Barrels">
+      <div class="gallery-item-formula">H₂SO₄</div>
+      <div class="gallery-item-overlay"><div class="gallery-item-label">Chemical Barrel Yard</div></div>
     </div>
-    <div class="gallery-item" style="height:200px;">
-      <img src="https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?w=600&q=80" alt="Storage tanks"
-           onerror="this.src='https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=600&q=80'">
-      <div class="gallery-item-formula">CaCl₂</div>
-      <div class="gallery-item-overlay"><div class="gallery-item-label">Bulk Storage Facility</div></div>
+    <div class="gallery-item" style="height:210px;">
+      <img data-slot="8"
+        src="https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=600&q=80"
+        alt="UAE Ajman">
+      <div class="gallery-item-formula">UAE</div>
+      <div class="gallery-item-overlay"><div class="gallery-item-label">Ajman Free Zone HQ</div></div>
     </div>
   </div>
 </section>
@@ -1523,6 +1801,148 @@ async function getAIReply(userMsg) {
 
 // Allow Enter key in chat
 document.getElementById('chat-input').addEventListener('keydown', e => { if(e.key==='Enter') sendChat(); });
+
+// ─── MOBILE NAV ───
+function toggleMobileNav() {
+  const menu = document.getElementById('mobileMenu');
+  const btn  = document.getElementById('hamburger');
+  menu.classList.toggle('open');
+  btn.classList.toggle('open');
+  document.body.style.overflow = menu.classList.contains('open') ? 'hidden' : '';
+}
+function closeMobileNav() {
+  document.getElementById('mobileMenu').classList.remove('open');
+  document.getElementById('hamburger').classList.remove('open');
+  document.body.style.overflow = '';
+}
+// close mobile menu on resize to desktop
+window.addEventListener('resize', () => { if (window.innerWidth > 900) closeMobileNav(); });
+
+// ─── ADMIN SYSTEM ───
+const ADMIN_CREDS = { user: 'admin', pass: 'Aniese@7730' };
+const GALLERY_DEFAULTS = [
+  { src: 'https://images.unsplash.com/photo-1563213126-a4273aed2016?w=900&q=80',        label: 'Chemical Research Laboratory' },
+  { src: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=700&q=80',      label: 'Acid & Reagent Jars' },
+  { src: 'https://images.unsplash.com/photo-1576671081837-49000212a370?w=700&q=80',      label: 'Industrial Drum Storage' },
+  { src: 'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=700&q=80',      label: 'Production Facility' },
+  { src: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=700&q=80',      label: 'Pharma Grade Chemicals' },
+  { src: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=600&q=80',         label: 'Reagent Test Tubes' },
+  { src: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=80',      label: 'Bulk Liquid Storage Tanks' },
+  { src: 'https://images.unsplash.com/photo-1604754742629-3e5728249d73?w=600&q=80',      label: 'Chemical Barrel Yard' },
+  { src: 'https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=600&q=80',      label: 'Ajman Free Zone HQ' },
+];
+
+// Load saved gallery data from localStorage
+function getGalleryData() {
+  try {
+    const saved = localStorage.getItem('novax_gallery');
+    return saved ? JSON.parse(saved) : GALLERY_DEFAULTS;
+  } catch(e) { return GALLERY_DEFAULTS; }
+}
+
+// Apply saved images to the live page gallery on load
+function applyGalleryToPage() {
+  const data = getGalleryData();
+  document.querySelectorAll('[data-slot]').forEach(img => {
+    const i = parseInt(img.dataset.slot);
+    if (data[i] && data[i].src) img.src = data[i].src;
+  });
+}
+applyGalleryToPage();
+
+let adminLoggedIn = false;
+let pendingGallery = [];  // base64 or URL per slot
+
+function openAdmin() {
+  document.getElementById('adminOverlay').classList.add('open');
+  if (adminLoggedIn) showAdminPanel();
+  else { document.getElementById('adminLogin').style.display = ''; document.getElementById('adminPanel').style.display = 'none'; }
+}
+function closeAdmin() {
+  document.getElementById('adminOverlay').classList.remove('open');
+}
+// close on overlay click
+document.getElementById('adminOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeAdmin(); });
+
+function doAdminLogin() {
+  const u = document.getElementById('adminUser').value.trim();
+  const p = document.getElementById('adminPass').value;
+  const err = document.getElementById('adminErr');
+  if (u === ADMIN_CREDS.user && p === ADMIN_CREDS.pass) {
+    adminLoggedIn = true;
+    err.style.display = 'none';
+    showAdminPanel();
+  } else {
+    err.style.display = 'block';
+    document.getElementById('adminPass').value = '';
+  }
+}
+
+function showAdminPanel() {
+  document.getElementById('adminLogin').style.display = 'none';
+  document.getElementById('adminPanel').style.display = '';
+  buildAdminGrid();
+}
+
+function buildAdminGrid() {
+  const data = getGalleryData();
+  pendingGallery = data.map(d => ({ ...d }));  // copy
+  const grid = document.getElementById('adminGalleryGrid');
+  grid.innerHTML = '';
+  pendingGallery.forEach((item, i) => {
+    const slot = document.createElement('div');
+    slot.className = 'admin-gallery-slot';
+    slot.innerHTML = `
+      <img src="${item.src}" alt="Slot ${i+1}" id="adminThumb${i}">
+      <div class="slot-overlay">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span>Upload Image</span>
+      </div>
+      <div class="admin-slot-label">${item.label}</div>
+      <input type="file" accept="image/*" id="fileInput${i}" onchange="handleSlotUpload(${i},this)">
+    `;
+    slot.addEventListener('click', () => document.getElementById(`fileInput${i}`).click());
+    grid.appendChild(slot);
+  });
+}
+
+function handleSlotUpload(index, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    pendingGallery[index].src = e.target.result;
+    document.getElementById(`adminThumb${index}`).src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function adminSaveGallery() {
+  try {
+    localStorage.setItem('novax_gallery', JSON.stringify(pendingGallery));
+    applyGalleryToPage();
+    const btn = document.querySelector('.admin-save-btn');
+    btn.textContent = '✓ Saved!';
+    btn.style.background = 'linear-gradient(135deg,#0a7a0a,#1ece1e)';
+    setTimeout(() => { btn.textContent = '✓ Save Changes'; btn.style.background = ''; }, 2200);
+  } catch(e) {
+    alert('Storage limit reached. Images may be too large. Try smaller files.');
+  }
+}
+
+function adminLogout() {
+  adminLoggedIn = false;
+  document.getElementById('adminUser').value = '';
+  document.getElementById('adminPass').value = '';
+  document.getElementById('adminLogin').style.display = '';
+  document.getElementById('adminPanel').style.display = 'none';
+  closeAdmin();
+}
+
+// Keyboard: Escape closes modals
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeAdmin(); closeMobileNav(); }
+});
 </script>
 </body>
 </html>
