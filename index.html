@@ -989,15 +989,32 @@ footer {
 
     <!-- GALLERY EDITOR VIEW -->
     <div id="adminPanel" style="display:none;">
-      <div class="admin-modal-title">Gallery Manager</div>
-      <div class="admin-modal-sub">Click any image slot to upload a new photo from your device.</div>
-      <div class="admin-tip">
-        <strong>📌 Tip:</strong> Images are saved in your browser's local storage and appear instantly on the site. 
-        To make changes permanent across all devices, upload the image files to your GitHub repo and update the src URLs in <strong>index.html</strong>.
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.6rem;margin-bottom:0.3rem;">
+        <div class="admin-modal-title" style="margin-bottom:0;">Gallery Manager</div>
+        <button class="admin-logout-btn" style="margin:0;" onclick="adminLogout()">Logout</button>
       </div>
+      <div class="admin-modal-sub">Upload images, rename files, edit titles — changes push live to GitHub for everyone.</div>
+
+      <!-- GitHub token prompt (shown once) -->
+      <div id="ghTokenWrap" style="display:none;margin-bottom:1.2rem;">
+        <div class="admin-tip" style="margin-bottom:0.6rem;">
+          🔑 Enter your GitHub token to enable saving. It stays on your device only.
+        </div>
+        <div style="display:flex;gap:0.5rem;">
+          <input id="ghTokenInput" type="password" class="admin-slot-edit-input" style="flex:1;padding:0.5rem 0.8rem;font-size:0.85rem;" placeholder="github_pat_..."/>
+          <button onclick="saveGhToken()" style="background:linear-gradient(135deg,#1a6aff,#00d4ff);border:none;border-radius:6px;color:#fff;padding:0.5rem 1rem;cursor:pointer;font-family:Rajdhani,sans-serif;font-weight:700;white-space:nowrap;">Save Token</button>
+        </div>
+      </div>
+
+      <div id="ghStatus" style="display:none;font-size:0.75rem;letter-spacing:0.08em;padding:0.4rem 0.8rem;border-radius:4px;margin-bottom:1rem;"></div>
+
       <div class="admin-gallery-grid" id="adminGalleryGrid"></div>
-      <button class="admin-save-btn" onclick="adminSaveGallery()">✓ Save Changes</button>
-      <button class="admin-logout-btn" onclick="adminLogout()">Logout</button>
+
+      <div style="display:flex;gap:0.7rem;flex-wrap:wrap;margin-top:0.5rem;">
+        <button class="admin-save-btn" style="flex:1;min-width:140px;" onclick="adminSaveToGitHub()">⬆ Push to GitHub</button>
+        <button onclick="addNewSlot()" style="flex:1;min-width:140px;background:rgba(45,156,255,0.12);border:1px solid rgba(45,156,255,0.35);border-radius:6px;color:#2d9cff;font-family:Rajdhani,sans-serif;font-weight:700;font-size:0.95rem;letter-spacing:0.1em;cursor:pointer;padding:0.8rem;">+ Add Image</button>
+      </div>
+      <div id="pushLog" style="display:none;margin-top:0.8rem;font-size:0.75rem;color:var(--gray);line-height:1.7;"></div>
     </div>
   </div>
 </div>
@@ -1941,49 +1958,150 @@ function doAdminRegister() {
   adminLoggedIn = true;
   showAdminPanel();
 }
+const GITHUB_OWNER = 'fgcdestroyer';
+const GITHUB_REPO  = 'NOVAX-CHEMICAL';
+const GITHUB_BRANCH = 'main';
+const IMAGES_PATH  = 'images'; // folder in repo where images are stored
+
 const GALLERY_DEFAULTS = [
-  { src: 'https://images.unsplash.com/photo-1563213126-a4273aed2016?w=900&q=80',        label: 'Chemical Research Laboratory' },
-  { src: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=700&q=80',      label: 'Acid & Reagent Jars' },
-  { src: 'https://images.unsplash.com/photo-1576671081837-49000212a370?w=700&q=80',      label: 'Industrial Drum Storage' },
-  { src: 'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=700&q=80',      label: 'Production Facility' },
-  { src: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=700&q=80',      label: 'Pharma Grade Chemicals' },
-  { src: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=600&q=80',         label: 'Reagent Test Tubes' },
-  { src: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=80',      label: 'Bulk Liquid Storage Tanks' },
-  { src: 'https://images.unsplash.com/photo-1604754742629-3e5728249d73?w=600&q=80',      label: 'Chemical Barrel Yard' },
-  { src: 'https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=600&q=80',      label: 'Ajman Free Zone HQ' },
+  { filename: 'chem-lab.jpg',      src: 'https://images.unsplash.com/photo-1563213126-a4273aed2016?w=900&q=80', label: 'Chemical Research Laboratory' },
+  { filename: 'reagent-jars.jpg',  src: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=700&q=80', label: 'Acid & Reagent Jars' },
+  { filename: 'drum-storage.jpg',  src: 'https://images.unsplash.com/photo-1576671081837-49000212a370?w=700&q=80', label: 'Industrial Drum Storage' },
+  { filename: 'production.jpg',    src: 'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=700&q=80', label: 'Production Facility' },
+  { filename: 'pharma.jpg',        src: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=700&q=80', label: 'Pharma Grade Chemicals' },
+  { filename: 'test-tubes.jpg',    src: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=600&q=80',  label: 'Reagent Test Tubes' },
+  { filename: 'bulk-tanks.jpg',    src: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=80', label: 'Bulk Liquid Storage Tanks' },
+  { filename: 'barrels.jpg',       src: 'https://images.unsplash.com/photo-1604754742629-3e5728249d73?w=600&q=80', label: 'Chemical Barrel Yard' },
+  { filename: 'ajman-hq.jpg',      src: 'https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=600&q=80', label: 'Ajman Free Zone HQ' },
 ];
 
-// Load saved gallery data from localStorage
+// ── GitHub helpers ──
+function getGhToken() { return localStorage.getItem('novax_gh_token') || ''; }
+function saveGhToken() {
+  const t = document.getElementById('ghTokenInput').value.trim();
+  if (!t) return;
+  localStorage.setItem('novax_gh_token', t);
+  document.getElementById('ghTokenWrap').style.display = 'none';
+  ghStatus('✓ Token saved', 'ok');
+}
+function ghStatus(msg, type) {
+  const el = document.getElementById('ghStatus');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.style.background = type === 'ok' ? 'rgba(0,200,100,0.1)' : type === 'err' ? 'rgba(255,80,80,0.1)' : 'rgba(45,156,255,0.08)';
+  el.style.color = type === 'ok' ? '#1ece6e' : type === 'err' ? '#ff6b6b' : '#2d9cff';
+  el.style.border = '1px solid ' + (type === 'ok' ? 'rgba(0,200,100,0.25)' : type === 'err' ? 'rgba(255,80,80,0.25)' : 'rgba(45,156,255,0.2)');
+}
+function pushLog(msg) {
+  const el = document.getElementById('pushLog');
+  if (!el) return;
+  el.style.display = 'block';
+  el.innerHTML += msg + '<br>';
+  el.scrollTop = el.scrollHeight;
+}
+
+async function ghGetFileSha(path) {
+  const token = getGhToken();
+  const res = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}?ref=${GITHUB_BRANCH}`, {
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' }
+  });
+  if (res.status === 404) return null;
+  const data = await res.json();
+  return data.sha || null;
+}
+
+async function ghPutFile(path, base64Content, message, sha) {
+  const token = getGhToken();
+  const body = { message, content: base64Content, branch: GITHUB_BRANCH };
+  if (sha) body.sha = sha;
+  const res = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  return res.ok ? await res.json() : null;
+}
+
+async function ghDeleteFile(path, sha, message) {
+  const token = getGhToken();
+  const res = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, sha, branch: GITHUB_BRANCH })
+  });
+  return res.ok;
+}
+
+// Convert dataURL to pure base64
+function dataURLtoBase64(dataURL) { return dataURL.split(',')[1]; }
+
+// ── Gallery data ──
 function getGalleryData() {
   try {
     const saved = localStorage.getItem('novax_gallery');
     return saved ? JSON.parse(saved) : GALLERY_DEFAULTS;
   } catch(e) { return GALLERY_DEFAULTS; }
 }
+function saveGalleryLocally(data) {
+  localStorage.setItem('novax_gallery', JSON.stringify(data));
+}
 
-// Apply saved images to the live page gallery on load
 function applyGalleryToPage() {
   const data = getGalleryData();
-  document.querySelectorAll('[data-slot]').forEach(img => {
+  const imgs = document.querySelectorAll('[data-slot]');
+  imgs.forEach(img => {
     const i = parseInt(img.dataset.slot);
-    if (data[i] && data[i].src) img.src = data[i].src;
+    if (data[i]) {
+      img.src = data[i].src;
+      const overlay = img.closest('.gallery-item')?.querySelector('.gallery-item-label');
+      if (overlay) overlay.textContent = data[i].label;
+    }
   });
+  // handle extra slots beyond original HTML
+  const mainGal = document.getElementById('mainGallery');
+  const subGal  = document.getElementById('subGallery');
+  if (!mainGal || !subGal) return;
+  const existing = document.querySelectorAll('[data-slot]').length;
+  for (let i = existing; i < data.length; i++) {
+    const div = document.createElement('div');
+    div.className = 'gallery-item';
+    div.style.height = '210px';
+    div.innerHTML = `<img data-slot="${i}" src="${data[i].src}" alt="${data[i].label}">
+      <div class="gallery-item-overlay"><div class="gallery-item-label">${data[i].label}</div></div>`;
+    subGal.appendChild(div);
+  }
 }
 applyGalleryToPage();
 
+// ── Admin state ──
 let adminLoggedIn = false;
-let pendingGallery = [];  // base64 or URL per slot
+let pendingGallery = [];
+const ADMIN_CREDS = { user: 'admin', pass: 'Aniese@7730' };
+let registeredUsers = JSON.parse(localStorage.getItem('novax_users') || '[]');
+let authMode = 'login';
 
 function openAdmin() {
   document.getElementById('adminOverlay').classList.add('open');
   if (adminLoggedIn) showAdminPanel();
   else { document.getElementById('adminLogin').style.display = ''; document.getElementById('adminPanel').style.display = 'none'; }
 }
-function closeAdmin() {
-  document.getElementById('adminOverlay').classList.remove('open');
-}
-// close on overlay click
+function closeAdmin() { document.getElementById('adminOverlay').classList.remove('open'); }
 document.getElementById('adminOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeAdmin(); });
+
+function toggleAuthMode() {
+  authMode = authMode === 'login' ? 'register' : 'login';
+  const isReg = authMode === 'register';
+  document.getElementById('authTitle').textContent = isReg ? 'Register' : 'Login';
+  document.getElementById('authSub').textContent = isReg ? 'Create an account to manage the gallery' : 'Sign in to manage gallery images';
+  document.getElementById('authBtn').textContent = isReg ? 'Create Account →' : 'Login →';
+  document.getElementById('authToggleText').textContent = isReg ? 'Already have an account?' : "Don't have an account?";
+  document.getElementById('authToggleBtn').textContent = isReg ? 'Login' : 'Register';
+  document.getElementById('regNameWrap').style.display = isReg ? '' : 'none';
+  document.getElementById('regConfirmWrap').style.display = isReg ? '' : 'none';
+  document.getElementById('adminErr').style.display = 'none';
+}
+function authAction() { authMode === 'login' ? doAdminLogin() : doAdminRegister(); }
 
 function doAdminLogin() {
   const u = document.getElementById('adminUser').value.trim();
@@ -1992,96 +2110,237 @@ function doAdminLogin() {
   const isAdmin = (u === ADMIN_CREDS.user && p === ADMIN_CREDS.pass);
   const isRegistered = registeredUsers.find(x => x.user === u && x.pass === p);
   if (isAdmin || isRegistered) {
-    adminLoggedIn = true;
-    err.style.display = 'none';
-    showAdminPanel();
+    adminLoggedIn = true; err.style.display = 'none'; showAdminPanel();
   } else {
-    err.textContent = 'Incorrect credentials. Try again.';
-    err.style.display = 'block';
+    err.textContent = 'Incorrect credentials. Try again.'; err.style.display = 'block';
     document.getElementById('adminPass').value = '';
   }
+}
+function doAdminRegister() {
+  const name = document.getElementById('adminDisplayName').value.trim();
+  const u = document.getElementById('adminUser').value.trim();
+  const p = document.getElementById('adminPass').value;
+  const p2 = document.getElementById('adminPassConfirm').value;
+  const err = document.getElementById('adminErr');
+  if (!u || !p) { err.textContent = 'Username and password are required.'; err.style.display = 'block'; return; }
+  if (p !== p2) { err.textContent = 'Passwords do not match.'; err.style.display = 'block'; return; }
+  if (u === ADMIN_CREDS.user || registeredUsers.find(x => x.user === u)) {
+    err.textContent = 'Username already exists.'; err.style.display = 'block'; return;
+  }
+  registeredUsers.push({ user: u, pass: p, name: name || u });
+  localStorage.setItem('novax_users', JSON.stringify(registeredUsers));
+  err.style.display = 'none'; adminLoggedIn = true; showAdminPanel();
 }
 
 function showAdminPanel() {
   document.getElementById('adminLogin').style.display = 'none';
   document.getElementById('adminPanel').style.display = '';
+  // show token prompt if no token saved
+  const tokenWrap = document.getElementById('ghTokenWrap');
+  if (tokenWrap) tokenWrap.style.display = getGhToken() ? 'none' : '';
   buildAdminGrid();
 }
 
 function buildAdminGrid() {
   const data = getGalleryData();
-  pendingGallery = data.map(d => ({ ...d }));  // copy
+  pendingGallery = data.map(d => ({ ...d, _newFile: null, _oldFilename: d.filename }));
   const grid = document.getElementById('adminGalleryGrid');
   grid.innerHTML = '';
-  pendingGallery.forEach((item, i) => {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'admin-slot-wrapper';
+  pendingGallery.forEach((item, i) => renderSlot(grid, item, i));
+}
 
-    const slot = document.createElement('div');
-    slot.className = 'admin-gallery-slot';
-    slot.innerHTML = `
-      <img src="${item.src}" alt="Slot ${i+1}" id="adminThumb${i}">
+function renderSlot(grid, item, i) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'admin-slot-wrapper';
+  wrapper.id = `slotWrapper${i}`;
+  wrapper.innerHTML = `
+    <div class="admin-gallery-slot" onclick="document.getElementById('fileInput${i}').click()">
+      <img src="${item.src}" alt="Slot ${i+1}" id="adminThumb${i}" style="width:100%;height:100%;object-fit:cover;">
       <div class="slot-overlay">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         <span>Upload Image</span>
       </div>
       <div class="admin-slot-label">${item.label}</div>
-      <input type="file" accept="image/*" id="fileInput${i}" onchange="handleSlotUpload(${i},this)">
-    `;
-    slot.addEventListener('click', () => document.getElementById(`fileInput${i}`).click());
-
-    // Label (display name) edit
-    const labelRow = document.createElement('div');
-    labelRow.className = 'admin-slot-edit-row';
-    labelRow.innerHTML = `
-      <label class="admin-slot-edit-label">Label</label>
-      <input class="admin-slot-edit-input" type="text" value="${item.label}" placeholder="Image label"
-        oninput="pendingGallery[${i}].label=this.value;document.querySelector('#adminThumb${i}').closest('.admin-gallery-slot').querySelector('.admin-slot-label').textContent=this.value"/>
-    `;
-
-    // Filename / src edit
-    const srcRow = document.createElement('div');
-    srcRow.className = 'admin-slot-edit-row';
-    srcRow.innerHTML = `
-      <label class="admin-slot-edit-label">Filename / URL</label>
-      <input class="admin-slot-edit-input" type="text" value="${item.src.startsWith('data:') ? '(uploaded)' : item.src}" placeholder="e.g. images/photo.png"
-        oninput="if(!this.value.startsWith('data:')){pendingGallery[${i}].src=this.value;document.getElementById('adminThumb${i}').src=this.value}"/>
-    `;
-
-    wrapper.appendChild(slot);
-    wrapper.appendChild(labelRow);
-    wrapper.appendChild(srcRow);
-    grid.appendChild(wrapper);
-  });
+      <input type="file" accept="image/*" id="fileInput${i}" style="display:none" onchange="handleSlotUpload(${i},this)">
+    </div>
+    <div class="admin-slot-edit-row">
+      <label class="admin-slot-edit-label">Title</label>
+      <input class="admin-slot-edit-input" type="text" value="${item.label}" placeholder="Image title"
+        oninput="pendingGallery[${i}].label=this.value;document.getElementById('adminThumb${i}').closest('.admin-gallery-slot').querySelector('.admin-slot-label').textContent=this.value"/>
+    </div>
+    <div class="admin-slot-edit-row">
+      <label class="admin-slot-edit-label">Filename (e.g. photo.png)</label>
+      <input class="admin-slot-edit-input" type="text" value="${item.filename || ''}" placeholder="chemicals.png"
+        oninput="pendingGallery[${i}].filename=this.value"/>
+    </div>
+    <button onclick="removeSlot(${i})" style="background:rgba(255,80,80,0.08);border:1px solid rgba(255,80,80,0.25);border-radius:4px;color:#ff6b6b;font-size:0.72rem;letter-spacing:0.1em;padding:0.25rem 0.6rem;cursor:pointer;font-family:Rajdhani,sans-serif;width:100%;margin-top:2px;">✕ Remove</button>
+  `;
+  grid.appendChild(wrapper);
 }
 
 function handleSlotUpload(index, input) {
   const file = input.files[0];
   if (!file) return;
+  // auto-set filename from uploaded file if not customised
+  if (!pendingGallery[index].filename || pendingGallery[index].filename === pendingGallery[index]._oldFilename) {
+    pendingGallery[index].filename = file.name;
+    const fnInput = document.querySelector(`#slotWrapper${index} .admin-slot-edit-input:last-of-type`);
+    if (fnInput) fnInput.value = file.name;
+  }
   const reader = new FileReader();
   reader.onload = e => {
+    pendingGallery[index]._newFile = e.target.result; // dataURL
     pendingGallery[index].src = e.target.result;
     document.getElementById(`adminThumb${index}`).src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
 
-function adminSaveGallery() {
-  try {
-    localStorage.setItem('novax_gallery', JSON.stringify(pendingGallery));
-    applyGalleryToPage();
-    const btn = document.querySelector('.admin-save-btn');
-    btn.textContent = '✓ Saved!';
-    btn.style.background = 'linear-gradient(135deg,#0a7a0a,#1ece1e)';
-    setTimeout(() => { btn.textContent = '✓ Save Changes'; btn.style.background = ''; }, 2200);
-  } catch(e) {
-    alert('Storage limit reached. Images may be too large. Try smaller files.');
+function addNewSlot() {
+  const i = pendingGallery.length;
+  const newItem = { filename: `image-${i+1}.jpg`, src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="%230d1535"/><text x="200" y="155" text-anchor="middle" fill="%232d9cff" font-size="16" font-family="sans-serif">Click to upload</text></svg>', label: `Image ${i+1}`, _newFile: null, _oldFilename: null };
+  pendingGallery.push(newItem);
+  const grid = document.getElementById('adminGalleryGrid');
+  renderSlot(grid, newItem, i);
+}
+
+function removeSlot(i) {
+  pendingGallery[i]._remove = true;
+  document.getElementById(`slotWrapper${i}`).style.opacity = '0.3';
+  document.getElementById(`slotWrapper${i}`).style.pointerEvents = 'none';
+}
+
+// ── Main: push everything to GitHub ──
+async function adminSaveToGitHub() {
+  const token = getGhToken();
+  if (!token) { document.getElementById('ghTokenWrap').style.display = ''; ghStatus('⚠ Please enter your GitHub token first', 'warn'); return; }
+
+  const logEl = document.getElementById('pushLog');
+  logEl.innerHTML = ''; logEl.style.display = 'block';
+  const btn = document.querySelector('.admin-save-btn');
+  btn.textContent = '⏳ Pushing...'; btn.disabled = true;
+  ghStatus('Pushing changes to GitHub...', 'info');
+
+  const finalGallery = [];
+  let errors = 0;
+
+  for (let i = 0; i < pendingGallery.length; i++) {
+    const item = pendingGallery[i];
+    if (item._remove) {
+      // delete file from repo if it was an existing repo file
+      if (item._oldFilename && !item.src.startsWith('http')) {
+        pushLog(`🗑 Deleting ${item._oldFilename}...`);
+        const sha = await ghGetFileSha(`${IMAGES_PATH}/${item._oldFilename}`);
+        if (sha) await ghDeleteFile(`${IMAGES_PATH}/${item._oldFilename}`, sha, `Remove ${item._oldFilename}`);
+      }
+      continue; // don't add to finalGallery
+    }
+
+    let liveSrc = item.src;
+
+    if (item._newFile) {
+      // Upload image file to GitHub
+      const filename = item.filename || `image-${i+1}.jpg`;
+      const filePath = `${IMAGES_PATH}/${filename}`;
+      pushLog(`⬆ Uploading ${filename}...`);
+
+      // If renaming, delete old file first
+      if (item._oldFilename && item._oldFilename !== filename && !item._oldFilename.startsWith('http')) {
+        const oldSha = await ghGetFileSha(`${IMAGES_PATH}/${item._oldFilename}`);
+        if (oldSha) {
+          await ghDeleteFile(`${IMAGES_PATH}/${item._oldFilename}`, oldSha, `Rename: remove ${item._oldFilename}`);
+          pushLog(`↪ Renamed from ${item._oldFilename}`);
+        }
+      }
+
+      const existingSha = await ghGetFileSha(filePath);
+      const b64 = dataURLtoBase64(item._newFile);
+      const result = await ghPutFile(filePath, b64, `Upload ${filename} via Gallery Manager`, existingSha);
+      if (result) {
+        liveSrc = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${filePath}`;
+        pushLog(`✓ ${filename} uploaded`);
+      } else {
+        pushLog(`✗ Failed to upload ${filename}`);
+        errors++;
+        liveSrc = item.src; // keep old
+      }
+    } else if (item.filename && item._oldFilename && item.filename !== item._oldFilename && !item._newFile) {
+      // Rename only (no new file) — rename in repo
+      const oldPath = `${IMAGES_PATH}/${item._oldFilename}`;
+      const newPath = `${IMAGES_PATH}/${item.filename}`;
+      pushLog(`✏ Renaming ${item._oldFilename} → ${item.filename}...`);
+      // GitHub API has no rename — get file content, re-upload, delete old
+      const getRes = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${oldPath}?ref=${GITHUB_BRANCH}`, {
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' }
+      });
+      if (getRes.ok) {
+        const fileData = await getRes.json();
+        const newSha = await ghGetFileSha(newPath);
+        const putRes = await ghPutFile(newPath, fileData.content.replace(/
+/g,''), `Rename ${item._oldFilename} to ${item.filename}`, newSha);
+        if (putRes) {
+          await ghDeleteFile(oldPath, fileData.sha, `Rename: remove old ${item._oldFilename}`);
+          liveSrc = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${newPath}`;
+          pushLog(`✓ Renamed to ${item.filename}`);
+        } else { pushLog(`✗ Rename failed`); errors++; }
+      } else { pushLog(`ℹ ${item._oldFilename} not in repo yet — skipped rename`); }
+    }
+
+    finalGallery.push({ filename: item.filename, src: liveSrc, label: item.label });
+  }
+
+  // ── Now update index.html in repo with new gallery data ──
+  pushLog('📝 Updating index.html in repo...');
+  const indexPath = 'index.html';
+  const indexSha = await ghGetFileSha(indexPath);
+
+  // Fetch current index.html content
+  const indexRes = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${indexPath}?ref=${GITHUB_BRANCH}`, {
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' }
+  });
+
+  if (indexRes.ok) {
+    const indexData = await indexRes.json();
+    let indexContent = atob(indexData.content.replace(/
+/g,''));
+
+    // Update GALLERY_DEFAULTS in the file
+    const newDefaults = 'const GALLERY_DEFAULTS = ' + JSON.stringify(finalGallery, null, 2) + ';';
+    indexContent = indexContent.replace(/const GALLERY_DEFAULTS = \[[\s\S]*?\];/, newDefaults);
+
+    // Update data-slot img tags for slots 0-8 (original HTML)
+    finalGallery.forEach((item, i) => {
+      const slotRegex = new RegExp(`(data-slot="${i}"[\s\S]*?src=")[^"]*(")`,'');
+      indexContent = indexContent.replace(slotRegex, `$1${item.src}$2`);
+      // update label
+      const labelMap = [i];
+    });
+
+    const newB64 = btoa(unescape(encodeURIComponent(indexContent)));
+    const pushResult = await ghPutFile(indexPath, newB64, 'Gallery Manager: update images & labels', indexData.sha);
+    if (pushResult) { pushLog('✓ index.html updated'); }
+    else { pushLog('✗ index.html update failed'); errors++; }
+  } else { pushLog('✗ Could not fetch index.html'); errors++; }
+
+  // Save locally too so current session reflects changes
+  saveGalleryLocally(finalGallery);
+  applyGalleryToPage();
+
+  btn.disabled = false;
+  if (errors === 0) {
+    btn.textContent = '✓ Pushed!';
+    ghStatus('✓ All changes pushed to GitHub! Site will update in ~30 seconds.', 'ok');
+    setTimeout(() => { btn.textContent = '⬆ Push to GitHub'; }, 3000);
+    // Refresh pending to reflect new state
+    pendingGallery = finalGallery.map(d => ({...d, _newFile: null, _oldFilename: d.filename}));
+  } else {
+    btn.textContent = '⬆ Push to GitHub';
+    ghStatus(`⚠ Done with ${errors} error(s). Check the log below.`, 'err');
   }
 }
 
 function adminLogout() {
-  adminLoggedIn = false;
-  authMode = 'login';
+  adminLoggedIn = false; authMode = 'login';
   document.getElementById('adminUser').value = '';
   document.getElementById('adminPass').value = '';
   document.getElementById('adminPassConfirm') && (document.getElementById('adminPassConfirm').value = '');
