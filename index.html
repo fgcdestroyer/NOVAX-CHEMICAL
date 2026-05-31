@@ -741,8 +741,9 @@ footer {
 
 /* admin gallery editor */
 .admin-gallery-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem;
   margin-bottom: 1.5rem;
+  align-items: start;
 }
 .admin-gallery-slot {
   position: relative; border-radius: 6px; overflow: hidden;
@@ -761,6 +762,17 @@ footer {
 .slot-overlay span { font-size: 0.7rem; color: var(--electric); letter-spacing: 0.1em; }
 .slot-overlay svg { color: var(--electric); }
 .admin-gallery-slot input[type=file] { display: none; }
+.admin-slot-wrapper { display: flex; flex-direction: column; gap: 0.4rem; }
+.admin-slot-edit-row { display: flex; flex-direction: column; gap: 0.2rem; }
+.admin-slot-edit-label { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray); }
+.admin-slot-edit-input {
+  width: 100%; background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(45,156,255,0.18); border-radius: 4px;
+  padding: 0.35rem 0.6rem; color: var(--white);
+  font-family: 'Outfit', sans-serif; font-size: 0.78rem; outline: none;
+  transition: border-color 0.2s;
+}
+.admin-slot-edit-input:focus { border-color: rgba(45,156,255,0.5); }
 .admin-slot-label {
   position: absolute; bottom: 0; left: 0; right: 0;
   background: rgba(6,11,32,0.85); padding: 0.35rem 0.5rem;
@@ -941,8 +953,15 @@ footer {
 
     <!-- LOGIN VIEW -->
     <div id="adminLogin">
-      <div class="admin-modal-title">Login</div>
-      <div class="admin-modal-sub">Sign in to manage gallery images</div>
+      <div class="admin-modal-title" id="authTitle">Login</div>
+      <div class="admin-modal-sub" id="authSub">Sign in to manage gallery images</div>
+
+      <!-- register-only field -->
+      <div class="admin-field" id="regNameWrap" style="display:none;">
+        <label>Display Name</label>
+        <input type="text" id="adminDisplayName" placeholder="e.g. Site Manager" autocomplete="off"/>
+      </div>
+
       <div class="admin-field">
         <label>Username</label>
         <input type="text" id="adminUser" placeholder="admin" autocomplete="username"/>
@@ -950,10 +969,22 @@ footer {
       <div class="admin-field">
         <label>Password</label>
         <input type="password" id="adminPass" placeholder="••••••••" autocomplete="current-password"
-               onkeydown="if(event.key==='Enter')doAdminLogin()"/>
+               onkeydown="if(event.key==='Enter')authAction()"/>
       </div>
+
+      <!-- register-only field -->
+      <div class="admin-field" id="regConfirmWrap" style="display:none;">
+        <label>Confirm Password</label>
+        <input type="password" id="adminPassConfirm" placeholder="••••••••" autocomplete="new-password"
+               onkeydown="if(event.key==='Enter')authAction()"/>
+      </div>
+
       <div class="admin-error" id="adminErr">Incorrect credentials. Try again.</div>
-      <button class="admin-login-btn" onclick="doAdminLogin()">Login →</button>
+      <button class="admin-login-btn" id="authBtn" onclick="authAction()">Login →</button>
+      <div style="text-align:center;margin-top:1rem;">
+        <span style="font-size:0.78rem;color:var(--gray);" id="authToggleText">Don't have an account?</span>
+        <button onclick="toggleAuthMode()" id="authToggleBtn" style="background:none;border:none;color:#2d9cff;font-size:0.78rem;cursor:pointer;margin-left:6px;text-decoration:underline;">Register</button>
+      </div>
     </div>
 
     <!-- GALLERY EDITOR VIEW -->
@@ -1494,7 +1525,7 @@ footer {
         </div>
         <button class="form-submit" id="formSubmitBtn" onclick="handleFormSubmit()">Send Enquiry →</button>
         <div class="form-success" id="formSuccess">
-          ✓ Your message has been sent! We'll respond within 24 hours.
+          ✉ Opening your email client — please send the pre-filled message to complete your enquiry.
         </div>
         <p style="font-size:0.72rem;color:var(--gray);margin-top:0.8rem;line-height:1.6;">
           This will open your email client pre-filled with your enquiry to novaxchemical@gmail.com
@@ -1872,6 +1903,44 @@ window.addEventListener('resize', () => { if (window.innerWidth > 900) closeMobi
 
 // ─── ADMIN SYSTEM ───
 const ADMIN_CREDS = { user: 'admin', pass: 'Aniese@7730' };
+let registeredUsers = JSON.parse(localStorage.getItem('novax_users') || '[]');
+let authMode = 'login'; // 'login' | 'register'
+
+function toggleAuthMode() {
+  authMode = authMode === 'login' ? 'register' : 'login';
+  const isReg = authMode === 'register';
+  document.getElementById('authTitle').textContent = isReg ? 'Register' : 'Login';
+  document.getElementById('authSub').textContent = isReg ? 'Create an account to manage the gallery' : 'Sign in to manage gallery images';
+  document.getElementById('authBtn').textContent = isReg ? 'Create Account →' : 'Login →';
+  document.getElementById('authToggleText').textContent = isReg ? 'Already have an account?' : "Don't have an account?";
+  document.getElementById('authToggleBtn').textContent = isReg ? 'Login' : 'Register';
+  document.getElementById('regNameWrap').style.display = isReg ? '' : 'none';
+  document.getElementById('regConfirmWrap').style.display = isReg ? '' : 'none';
+  document.getElementById('adminErr').style.display = 'none';
+}
+
+function authAction() {
+  if (authMode === 'login') doAdminLogin();
+  else doAdminRegister();
+}
+
+function doAdminRegister() {
+  const name = document.getElementById('adminDisplayName').value.trim();
+  const u = document.getElementById('adminUser').value.trim();
+  const p = document.getElementById('adminPass').value;
+  const p2 = document.getElementById('adminPassConfirm').value;
+  const err = document.getElementById('adminErr');
+  if (!u || !p) { err.textContent = 'Username and password are required.'; err.style.display = 'block'; return; }
+  if (p !== p2) { err.textContent = 'Passwords do not match.'; err.style.display = 'block'; return; }
+  if (u === ADMIN_CREDS.user || registeredUsers.find(x => x.user === u)) {
+    err.textContent = 'Username already exists.'; err.style.display = 'block'; return;
+  }
+  registeredUsers.push({ user: u, pass: p, name: name || u });
+  localStorage.setItem('novax_users', JSON.stringify(registeredUsers));
+  err.style.display = 'none';
+  adminLoggedIn = true;
+  showAdminPanel();
+}
 const GALLERY_DEFAULTS = [
   { src: 'https://images.unsplash.com/photo-1563213126-a4273aed2016?w=900&q=80',        label: 'Chemical Research Laboratory' },
   { src: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=700&q=80',      label: 'Acid & Reagent Jars' },
@@ -1920,11 +1989,14 @@ function doAdminLogin() {
   const u = document.getElementById('adminUser').value.trim();
   const p = document.getElementById('adminPass').value;
   const err = document.getElementById('adminErr');
-  if (u === ADMIN_CREDS.user && p === ADMIN_CREDS.pass) {
+  const isAdmin = (u === ADMIN_CREDS.user && p === ADMIN_CREDS.pass);
+  const isRegistered = registeredUsers.find(x => x.user === u && x.pass === p);
+  if (isAdmin || isRegistered) {
     adminLoggedIn = true;
     err.style.display = 'none';
     showAdminPanel();
   } else {
+    err.textContent = 'Incorrect credentials. Try again.';
     err.style.display = 'block';
     document.getElementById('adminPass').value = '';
   }
@@ -1942,6 +2014,9 @@ function buildAdminGrid() {
   const grid = document.getElementById('adminGalleryGrid');
   grid.innerHTML = '';
   pendingGallery.forEach((item, i) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'admin-slot-wrapper';
+
     const slot = document.createElement('div');
     slot.className = 'admin-gallery-slot';
     slot.innerHTML = `
@@ -1954,7 +2029,29 @@ function buildAdminGrid() {
       <input type="file" accept="image/*" id="fileInput${i}" onchange="handleSlotUpload(${i},this)">
     `;
     slot.addEventListener('click', () => document.getElementById(`fileInput${i}`).click());
-    grid.appendChild(slot);
+
+    // Label (display name) edit
+    const labelRow = document.createElement('div');
+    labelRow.className = 'admin-slot-edit-row';
+    labelRow.innerHTML = `
+      <label class="admin-slot-edit-label">Label</label>
+      <input class="admin-slot-edit-input" type="text" value="${item.label}" placeholder="Image label"
+        oninput="pendingGallery[${i}].label=this.value;document.querySelector('#adminThumb${i}').closest('.admin-gallery-slot').querySelector('.admin-slot-label').textContent=this.value"/>
+    `;
+
+    // Filename / src edit
+    const srcRow = document.createElement('div');
+    srcRow.className = 'admin-slot-edit-row';
+    srcRow.innerHTML = `
+      <label class="admin-slot-edit-label">Filename / URL</label>
+      <input class="admin-slot-edit-input" type="text" value="${item.src.startsWith('data:') ? '(uploaded)' : item.src}" placeholder="e.g. images/photo.png"
+        oninput="if(!this.value.startsWith('data:')){pendingGallery[${i}].src=this.value;document.getElementById('adminThumb${i}').src=this.value}"/>
+    `;
+
+    wrapper.appendChild(slot);
+    wrapper.appendChild(labelRow);
+    wrapper.appendChild(srcRow);
+    grid.appendChild(wrapper);
   });
 }
 
@@ -1984,8 +2081,18 @@ function adminSaveGallery() {
 
 function adminLogout() {
   adminLoggedIn = false;
+  authMode = 'login';
   document.getElementById('adminUser').value = '';
   document.getElementById('adminPass').value = '';
+  document.getElementById('adminPassConfirm') && (document.getElementById('adminPassConfirm').value = '');
+  document.getElementById('authTitle').textContent = 'Login';
+  document.getElementById('authSub').textContent = 'Sign in to manage gallery images';
+  document.getElementById('authBtn').textContent = 'Login →';
+  document.getElementById('authToggleText').textContent = "Don't have an account?";
+  document.getElementById('authToggleBtn').textContent = 'Register';
+  document.getElementById('regNameWrap').style.display = 'none';
+  document.getElementById('regConfirmWrap').style.display = 'none';
+  document.getElementById('adminErr').style.display = 'none';
   document.getElementById('adminLogin').style.display = '';
   document.getElementById('adminPanel').style.display = 'none';
   closeAdmin();
