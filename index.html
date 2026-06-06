@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NOVAX CHEMICAL — Precision. Purity. Power.</title>
-<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/novaxchemical/assets/main/images/logo.png">
+<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -467,59 +467,178 @@ footer {
 }
 .chem-ticker-item::before { content: '◆'; font-size: 0.4rem; color: var(--cyan); }
 
-/* ─── GITHUB IMAGE MANAGER ─── */
-.img-manager-bar {
-  display: flex; align-items: center; gap: 0.8rem;
-  margin-bottom: 1.2rem; flex-wrap: wrap;
+/* ─── ADMIN PANEL ─── */
+/* Lock button — always visible */
+.admin-lock-btn {
+  display: flex; align-items: center; gap: 0.55rem;
+  background: rgba(6,11,32,0.7);
+  border: 1px solid rgba(45,156,255,0.18);
+  border-radius: 6px; padding: 0.45rem 1rem;
+  color: var(--gray); font-family: 'Rajdhani', sans-serif;
+  font-size: 0.78rem; letter-spacing: 0.15em; text-transform: uppercase;
+  cursor: pointer; transition: all 0.25s; margin-bottom: 1.5rem;
+  width: fit-content;
 }
-.img-manager-bar label {
-  font-family: 'Rajdhani', sans-serif; font-size: 0.75rem;
-  letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent);
+.admin-lock-btn:hover { border-color: rgba(45,156,255,0.5); color: var(--white); }
+.admin-lock-btn svg { flex-shrink: 0; }
+/* Login modal overlay */
+.admin-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(4,8,22,0.82); backdrop-filter: blur(8px);
+  z-index: 9999; align-items: center; justify-content: center;
 }
-.img-manager-bar input[type="text"] {
-  flex: 1; min-width: 180px;
-  background: rgba(26,58,143,0.12);
-  border: 1px solid rgba(45,156,255,0.2);
-  border-radius: 4px; padding: 0.45rem 0.8rem;
-  color: var(--white); font-family: 'Outfit', sans-serif; font-size: 0.82rem;
-  outline: none; transition: border-color 0.3s;
+.admin-overlay.open { display: flex; }
+/* Panel card */
+.admin-panel {
+  background: linear-gradient(160deg, #0d1535 0%, #060b20 100%);
+  border: 1px solid rgba(45,156,255,0.22);
+  border-radius: 14px; width: 100%; max-width: 640px;
+  padding: 2.2rem 2.5rem; position: relative;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(45,156,255,0.06);
 }
-.img-manager-bar input[type="text"]:focus { border-color: rgba(45,156,255,0.5); }
-.img-manager-bar input[type="text"]::placeholder { color: rgba(138,155,192,0.45); }
-.img-manager-bar select {
-  background: rgba(6,11,32,0.92);
-  border: 1px solid rgba(45,156,255,0.2);
-  border-radius: 4px; padding: 0.45rem 0.7rem;
-  color: var(--white); font-family: 'Outfit', sans-serif; font-size: 0.82rem;
-  outline: none;
+.admin-close {
+  position: absolute; top: 1rem; right: 1rem;
+  background: rgba(45,156,255,0.08); border: 1px solid rgba(45,156,255,0.15);
+  border-radius: 50%; width: 32px; height: 32px;
+  color: var(--gray); font-size: 1rem; line-height: 1;
+  cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;
 }
-.img-manager-btn {
-  padding: 0.45rem 1.2rem;
+.admin-close:hover { background: rgba(255,60,60,0.15); border-color: rgba(255,60,60,0.4); color: var(--white); }
+.admin-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.8rem; }
+.admin-header-icon {
+  width: 44px; height: 44px; border-radius: 10px;
   background: linear-gradient(135deg, var(--blue1), var(--blue2));
-  border: 1px solid rgba(45,156,255,0.3);
-  border-radius: 4px; color: var(--white);
-  font-family: 'Rajdhani', sans-serif; font-weight: 700;
-  font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase;
-  transition: all 0.25s; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.img-manager-btn:hover { background: linear-gradient(135deg, var(--blue2), var(--electric)); border-color: var(--electric); }
-.img-manager-badge {
-  font-family: 'Rajdhani', sans-serif; font-size: 0.7rem;
-  letter-spacing: 0.15em; color: var(--gray); text-transform: uppercase;
+.admin-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 0.15em; color: var(--white); line-height: 1; }
+.admin-subtitle { font-family: 'Rajdhani', sans-serif; font-size: 0.7rem; letter-spacing: 0.2em; color: var(--gray); text-transform: uppercase; margin-top: 0.2rem; }
+/* Login form */
+.admin-login { display: block; }
+.admin-panel.authenticated .admin-login { display: none; }
+.admin-dashboard { display: none; }
+.admin-panel.authenticated .admin-dashboard { display: block; }
+.admin-field { margin-bottom: 1rem; }
+.admin-field label {
+  display: block; font-family: 'Rajdhani', sans-serif;
+  font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 0.4rem;
+}
+.admin-field input {
+  width: 100%; background: rgba(26,58,143,0.12);
+  border: 1px solid rgba(45,156,255,0.2); border-radius: 6px;
+  padding: 0.7rem 1rem; color: var(--white);
+  font-family: 'Outfit', sans-serif; font-size: 0.9rem;
+  outline: none; transition: border-color 0.3s, box-shadow 0.3s;
+  box-sizing: border-box;
+}
+.admin-field input:focus { border-color: rgba(45,156,255,0.55); box-shadow: 0 0 0 3px rgba(45,156,255,0.08); }
+.admin-field input::placeholder { color: rgba(138,155,192,0.4); }
+.admin-login-btn {
+  width: 100%; margin-top: 1.2rem;
+  background: linear-gradient(135deg, var(--blue1), var(--blue2));
+  border: 1px solid rgba(45,156,255,0.35); border-radius: 6px;
+  color: var(--white); font-family: 'Rajdhani', sans-serif;
+  font-weight: 700; font-size: 0.88rem; letter-spacing: 0.18em;
+  text-transform: uppercase; padding: 0.8rem 1rem;
+  cursor: pointer; transition: all 0.25s;
+}
+.admin-login-btn:hover { background: linear-gradient(135deg, var(--blue2), var(--electric)); }
+.admin-login-error {
+  display: none; margin-top: 0.8rem; text-align: center;
+  color: #ff6b6b; font-family: 'Rajdhani', sans-serif;
+  font-size: 0.8rem; letter-spacing: 0.1em;
+}
+/* Dashboard tabs */
+.admin-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(45,156,255,0.12); padding-bottom: 0.8rem; }
+.admin-tab {
+  background: none; border: 1px solid transparent; border-radius: 5px;
+  padding: 0.35rem 0.9rem; color: var(--gray);
+  font-family: 'Rajdhani', sans-serif; font-size: 0.78rem;
+  letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: all 0.2s;
+}
+.admin-tab.active, .admin-tab:hover { border-color: rgba(45,156,255,0.3); color: var(--white); background: rgba(45,156,255,0.07); }
+.admin-tab-pane { display: none; }
+.admin-tab-pane.active { display: block; }
+/* Image grid in dashboard */
+.admin-img-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem;
+  max-height: 240px; overflow-y: auto; margin-bottom: 1.2rem;
+  padding-right: 0.3rem;
+}
+.admin-img-grid::-webkit-scrollbar { width: 4px; }
+.admin-img-grid::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
+.admin-img-grid::-webkit-scrollbar-thumb { background: rgba(45,156,255,0.3); border-radius: 2px; }
+.admin-img-card {
+  position: relative; border-radius: 6px; overflow: hidden;
+  border: 1px solid rgba(45,156,255,0.12); aspect-ratio: 4/3;
+  background: rgba(26,58,143,0.1);
+}
+.admin-img-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.admin-img-card-label {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 0.25rem 0.4rem;
+  background: rgba(4,8,22,0.75); backdrop-filter: blur(4px);
+  font-family: 'Rajdhani', sans-serif; font-size: 0.65rem;
+  letter-spacing: 0.08em; color: var(--gray); text-align: center;
+}
+.admin-img-card-actions {
+  position: absolute; top: 0.3rem; right: 0.3rem;
+  display: flex; gap: 0.25rem; opacity: 0; transition: opacity 0.2s;
+}
+.admin-img-card:hover .admin-img-card-actions { opacity: 1; }
+.admin-img-card-actions button {
+  width: 22px; height: 22px; border-radius: 4px; border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 0.65rem; font-weight: 700; transition: all 0.15s;
+}
+.btn-edit-img { background: rgba(45,156,255,0.8); color: #fff; }
+.btn-del-img  { background: rgba(255,60,60,0.8); color: #fff; }
+/* Add image form inside panel */
+.admin-add-form { display: flex; flex-direction: column; gap: 0.7rem; }
+.admin-add-form .row { display: flex; gap: 0.6rem; }
+.admin-add-form .row .admin-field { flex: 1; margin-bottom: 0; }
+.admin-add-form .admin-field label { margin-bottom: 0.3rem; }
+.admin-action-row { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; }
+.admin-count-badge {
+  font-family: 'Rajdhani', sans-serif; font-size: 0.72rem; letter-spacing: 0.15em;
+  color: var(--gray); text-transform: uppercase;
   border: 1px solid rgba(45,156,255,0.12); border-radius: 100px;
-  padding: 0.2rem 0.7rem; white-space: nowrap;
+  padding: 0.25rem 0.8rem;
 }
-.img-manager-badge span { color: var(--electric); font-weight: 700; }
-.img-manager-note {
-  font-size: 0.72rem; color: var(--gray); line-height: 1.6;
-  margin-bottom: 1.5rem; font-family: 'Rajdhani', sans-serif;
-  letter-spacing: 0.05em;
-  border-left: 2px solid rgba(45,156,255,0.25); padding-left: 0.8rem;
+.admin-count-badge span { color: var(--electric); font-weight: 700; }
+.admin-add-btn {
+  background: linear-gradient(135deg, var(--blue1), var(--blue2));
+  border: 1px solid rgba(45,156,255,0.3); border-radius: 6px;
+  color: var(--white); font-family: 'Rajdhani', sans-serif; font-weight: 700;
+  font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 0.55rem 1.4rem; cursor: pointer; transition: all 0.25s;
 }
-.img-manager-note code {
-  background: rgba(45,156,255,0.12); border-radius: 3px;
-  padding: 0.05rem 0.35rem; font-size: 0.78rem; color: var(--accent);
+.admin-add-btn:hover { background: linear-gradient(135deg, var(--blue2), var(--electric)); }
+/* Info note */
+.admin-info {
+  font-family: 'Rajdhani', sans-serif; font-size: 0.72rem;
+  color: var(--gray); line-height: 1.7; letter-spacing: 0.04em;
+  border-left: 2px solid rgba(45,156,255,0.22); padding-left: 0.8rem; margin-bottom: 1.2rem;
 }
+.admin-info code {
+  background: rgba(45,156,255,0.1); border-radius: 3px;
+  padding: 0.05rem 0.35rem; font-size: 0.75rem; color: var(--accent);
+}
+/* Edit in-place tooltip */
+.admin-edit-popup {
+  display: none; position: fixed; z-index: 10000;
+  background: #0d1535; border: 1px solid rgba(45,156,255,0.3);
+  border-radius: 8px; padding: 1rem 1.2rem; min-width: 280px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+}
+.admin-edit-popup.open { display: block; }
+.admin-edit-popup label { font-family: 'Rajdhani', sans-serif; font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 0.35rem; }
+.admin-edit-popup input { width: 100%; background: rgba(26,58,143,0.15); border: 1px solid rgba(45,156,255,0.2); border-radius: 4px; padding: 0.5rem 0.7rem; color: var(--white); font-family: 'Outfit', sans-serif; font-size: 0.82rem; outline: none; box-sizing: border-box; margin-bottom: 0.6rem; }
+.admin-edit-popup input:focus { border-color: rgba(45,156,255,0.5); }
+.admin-edit-popup-btns { display: flex; gap: 0.5rem; justify-content: flex-end; }
+.admin-edit-popup-btns button { padding: 0.35rem 0.9rem; border-radius: 4px; border: none; font-family: 'Rajdhani', sans-serif; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; cursor: pointer; }
+.btn-popup-save { background: var(--blue2); color: var(--white); }
+.btn-popup-cancel { background: rgba(255,255,255,0.07); color: var(--gray); }
 /* dynamic extra gallery items */
 .gallery-extra-row {
   display: grid;
@@ -872,9 +991,10 @@ footer {
   .products-search-wrap { max-width: 100%; }
   .chem-letter { font-size: 1.5rem; }
   .chem-items span { font-size: 0.73rem; }
-  /* IMAGE MANAGER */
-  .img-manager-bar { flex-direction: column; align-items: stretch; }
-  .img-manager-bar input[type="text"], .img-manager-bar select { width: 100%; }
+  /* ADMIN PANEL */
+  .admin-panel { padding: 1.4rem 1.2rem; }
+  .admin-img-grid { grid-template-columns: repeat(2, 1fr); }
+  .admin-add-form .row { flex-direction: column; }
   .gallery-extra-row { grid-template-columns: repeat(2, 1fr) !important; }
 
   /* GALLERY */
@@ -927,7 +1047,7 @@ footer {
 <nav>
   <div class="nav-brand">
     <img id="navLogo"
-         src="https://raw.githubusercontent.com/novaxchemical/assets/main/images/logo.png"
+         src="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/logo.png"
          alt="NOVAX CHEMICAL"
          style="height:56px;width:auto;display:block;">
     <div class="nav-brand-sub" style="display:none;">FZE LLC — Ajman Free Zone, UAE</div>
@@ -1064,7 +1184,7 @@ footer {
   <div class="about">
     <div class="about-img-wrap reveal">
       <img class="about-img-main"
-        src="https://raw.githubusercontent.com/novaxchemical/assets/main/images/about-chemical-lab.png"
+        src="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/2.png"
         alt="Chemical Laboratory"
         onerror="this.src='https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=800&q=80'">
       <div class="about-img-overlay"></div>
@@ -1127,7 +1247,7 @@ footer {
     <svg class="products-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
     </svg>
-    <input type="text" id="productSearch" placeholder="Search by name or formula — try HCl, NaOH, H₂SO₄, soda, ammonia…" autocomplete="off" oninput="searchProducts(this.value)">
+    <input type="text" id="productSearch" placeholder="Search by name or formula — e.g. Hydrochloric Acid, Sulphuric Acid, Acetone…" autocomplete="off" oninput="searchProducts(this.value)">
     <button class="search-clear" id="searchClear" onclick="clearSearch()" title="Clear search">✕</button>
   </div>
   <div class="search-results-info" id="searchInfo"></div>
@@ -1284,59 +1404,152 @@ footer {
   <div class="section-tag reveal">Visual Identity</div>
   <h2 class="section-title reveal" style="margin-bottom:2rem;">Inside the World<br>of Novax</h2>
 
-  <!-- ─── IMAGE MANAGER ─── -->
-  <div class="reveal" style="transition-delay:0.1s;">
-    <div class="img-manager-note">
-      All gallery images are loaded from your GitHub repository.<br>
-      Save image files as <code>.png</code> (or <code>.jpg</code>) in your repo and enter the raw URL below to add them here.
-      Format: <code>https://raw.githubusercontent.com/USERNAME/REPO/main/images/photo.png</code>
+  <!-- ─── ADMIN PANEL (Gallery Manager) ─── -->
+  <button class="admin-lock-btn reveal" onclick="openAdminPanel()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    Admin — Manage Gallery Images
+  </button>
+
+  <!-- Modal Overlay -->
+  <div class="admin-overlay" id="adminOverlay" onclick="handleOverlayClick(event)">
+    <div class="admin-panel" id="adminPanel">
+      <button class="admin-close" onclick="closeAdminPanel()">✕</button>
+
+      <!-- Header -->
+      <div class="admin-header">
+        <div class="admin-header-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div>
+          <div class="admin-title">Gallery Admin</div>
+          <div class="admin-subtitle">NOVAX CHEMICAL — Image Manager</div>
+        </div>
+      </div>
+
+      <!-- ── LOGIN FORM ── -->
+      <div class="admin-login">
+        <div class="admin-field">
+          <label>Username</label>
+          <input type="text" id="adminUser" placeholder="Enter username" autocomplete="off">
+        </div>
+        <div class="admin-field">
+          <label>Password</label>
+          <input type="password" id="adminPass" placeholder="Enter password" onkeydown="if(event.key==='Enter')doAdminLogin()">
+        </div>
+        <button class="admin-login-btn" onclick="doAdminLogin()">Sign In</button>
+        <div class="admin-login-error" id="loginError">⚠ Invalid credentials — access denied</div>
+      </div>
+
+      <!-- ── DASHBOARD (shown after login) ── -->
+      <div class="admin-dashboard">
+        <!-- Tabs -->
+        <div class="admin-tabs">
+          <button class="admin-tab active" onclick="switchTab('gallery',this)">Gallery Images</button>
+          <button class="admin-tab" onclick="switchTab('add',this)">Add Image</button>
+          <button class="admin-tab" onclick="switchTab('info',this)">File Guide</button>
+          <button class="admin-tab admin-tab--logout" onclick="doAdminLogout()" style="margin-left:auto;color:#ff6b6b;">Sign Out</button>
+        </div>
+
+        <!-- TAB: Gallery grid -->
+        <div class="admin-tab-pane active" id="tab-gallery">
+          <div class="admin-img-grid" id="adminImgGrid"><!-- populated by JS --></div>
+          <div class="admin-action-row">
+            <div class="admin-count-badge">Total images: <span id="imgCount">9</span></div>
+          </div>
+        </div>
+
+        <!-- TAB: Add image -->
+        <div class="admin-tab-pane" id="tab-add">
+          <div class="admin-add-form">
+            <div class="admin-field">
+              <label>Image Number (filename)</label>
+              <input type="text" id="addImgNum" placeholder="e.g. 12  →  saves as 12.png">
+            </div>
+            <div class="row">
+              <div class="admin-field">
+                <label>Caption</label>
+                <input type="text" id="addImgLabel" placeholder="e.g. Warehouse Facility">
+              </div>
+              <div class="admin-field">
+                <label>Formula Tag</label>
+                <input type="text" id="addImgFormula" placeholder="e.g. H₂SO₄">
+              </div>
+            </div>
+            <div class="admin-action-row">
+              <div class="admin-count-badge">Next suggested: <span id="nextNumHint">12</span>.png</div>
+              <button class="admin-add-btn" onclick="adminAddImage()">+ Add to Gallery</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: File guide -->
+        <div class="admin-tab-pane" id="tab-info">
+          <div class="admin-info">
+            All images are loaded from your GitHub repository:<br>
+            <code>https://github.com/fgcdestroyer/NOVAX-CHEMICAL</code><br><br>
+            Name your image files as numbers and place them in the <code>images/</code> folder:<br>
+            <code>images/1.png</code> — Logo<br>
+            <code>images/2.png</code> — About section<br>
+            <code>images/3.png</code> — Gallery slot 1<br>
+            <code>images/4.png</code> — Gallery slot 2<br>
+            &hellip; and so on up to <code>images/11.png</code><br><br>
+            To add more, push them as <code>12.png</code>, <code>13.png</code>, etc., then use the <strong>Add Image</strong> tab.<br><br>
+            Raw URL format:<br>
+            <code>https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/12.png</code>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="img-manager-bar">
-      <label>+ Add Image</label>
-      <input type="text" id="imgUrl" placeholder="GitHub raw image URL (.png / .jpg)">
-      <input type="text" id="imgLabel" placeholder="Caption (e.g. Lab Facility)">
-      <input type="text" id="imgFormula" placeholder="Formula tag (e.g. HCl)">
-      <button class="img-manager-btn" onclick="addGalleryImage()">Add to Gallery</button>
-      <div class="img-manager-badge">Total: <span id="imgCount">9</span> images</div>
+  </div>
+
+  <!-- Edit popup (inline) -->
+  <div class="admin-edit-popup" id="editPopup">
+    <label>Caption</label>
+    <input type="text" id="editLabel" placeholder="Caption">
+    <label>Formula Tag</label>
+    <input type="text" id="editFormula" placeholder="e.g. HCl">
+    <div class="admin-edit-popup-btns">
+      <button class="btn-popup-cancel" onclick="closeEditPopup()">Cancel</button>
+      <button class="btn-popup-save" onclick="saveEditPopup()">Save</button>
     </div>
   </div>
 
   <div class="gallery reveal" id="mainGallery">
     <div class="gallery-item">
-      <img data-slot="0" data-name="lab-glassware.png"
-        src="https://raw.githubusercontent.com/novaxchemical/assets/main/images/lab-glassware.png"
+      <img data-slot="0" data-name="3.png"
+        src="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/3.png"
         onerror="this.src='https://images.unsplash.com/photo-1563213126-a4273aed2016?w=900&q=80'"
         alt="Chemical Lab Glassware">
       <div class="gallery-item-formula">LAB</div>
       <div class="gallery-item-overlay"><div class="gallery-item-label">Chemical Research Laboratory</div></div>
     </div>
     <div class="gallery-item">
-      <img data-slot="1" data-name="acid-reagent-jars.png"
-        src="https://raw.githubusercontent.com/novaxchemical/assets/main/images/acid-reagent-jars.png"
+      <img data-slot="1" data-name="4.png"
+        src="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/4.png"
         onerror="this.src='https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=700&q=80'"
         alt="Lab Flasks">
       <div class="gallery-item-formula">HCl</div>
       <div class="gallery-item-overlay"><div class="gallery-item-label">Acid & Reagent Jars</div></div>
     </div>
     <div class="gallery-item">
-      <img data-slot="2" data-name="industrial-drum-storage.png"
-        src="https://raw.githubusercontent.com/novaxchemical/assets/main/images/industrial-drum-storage.png"
+      <img data-slot="2" data-name="5.png"
+        src="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/5.png"
         onerror="this.src='https://images.unsplash.com/photo-1576671081837-49000212a370?w=700&q=80'"
         alt="Chemical Drums Storage">
       <div class="gallery-item-formula">IBC</div>
       <div class="gallery-item-overlay"><div class="gallery-item-label">Industrial Drum Storage</div></div>
     </div>
     <div class="gallery-item">
-      <img data-slot="3" data-name="production-facility.png"
-        src="https://raw.githubusercontent.com/novaxchemical/assets/main/images/production-facility.png"
+      <img data-slot="3" data-name="6.png"
+        src="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/6.png"
         onerror="this.src='https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=700&q=80'"
         alt="Chemical Factory">
       <div class="gallery-item-formula">MFG</div>
       <div class="gallery-item-overlay"><div class="gallery-item-label">Production Facility</div></div>
     </div>
     <div class="gallery-item">
-      <img data-slot="4" data-name="pharma-grade-chemicals.png"
-        src="https://raw.githubusercontent.com/novaxchemical/assets/main/images/pharma-grade-chemicals.png"
+      <img data-slot="4" data-name="7.png"
+        src="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/7.png"
         onerror="this.src='https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=700&q=80'"
         alt="Pharmaceutical Chemicals">
       <div class="gallery-item-formula">API</div>
@@ -1347,32 +1560,32 @@ footer {
   <!-- Second gallery row -->
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1rem;margin-top:1rem;" id="subGallery">
     <div class="gallery-item" style="height:210px;">
-      <img data-slot="5" data-name="reagent-test-tubes.png"
-        src="https://raw.githubusercontent.com/novaxchemical/assets/main/images/reagent-test-tubes.png"
+      <img data-slot="5" data-name="8.png"
+        src="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/8.png"
         onerror="this.src='https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=600&q=80'"
         alt="Lab Test Tubes">
       <div class="gallery-item-formula">NaOH</div>
       <div class="gallery-item-overlay"><div class="gallery-item-label">Reagent Test Tubes</div></div>
     </div>
     <div class="gallery-item" style="height:210px;">
-      <img data-slot="6" data-name="bulk-storage-tanks.png"
-        src="https://raw.githubusercontent.com/novaxchemical/assets/main/images/bulk-storage-tanks.png"
+      <img data-slot="6" data-name="9.png"
+        src="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/9.png"
         onerror="this.src='https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=80'"
         alt="Industrial Tanks">
       <div class="gallery-item-formula">BULK</div>
       <div class="gallery-item-overlay"><div class="gallery-item-label">Bulk Liquid Storage Tanks</div></div>
     </div>
     <div class="gallery-item" style="height:210px;">
-      <img data-slot="7" data-name="chemical-barrel-yard.png"
-        src="https://raw.githubusercontent.com/novaxchemical/assets/main/images/chemical-barrel-yard.png"
+      <img data-slot="7" data-name="10.png"
+        src="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/10.png"
         onerror="this.src='https://images.unsplash.com/photo-1604754742629-3e5728249d73?w=600&q=80'"
         alt="Chemical Barrels">
       <div class="gallery-item-formula">H₂SO₄</div>
       <div class="gallery-item-overlay"><div class="gallery-item-label">Chemical Barrel Yard</div></div>
     </div>
     <div class="gallery-item" style="height:210px;">
-      <img data-slot="8" data-name="ajman-freezone-hq.png"
-        src="https://raw.githubusercontent.com/novaxchemical/assets/main/images/ajman-freezone-hq.png"
+      <img data-slot="8" data-name="11.png"
+        src="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/11.png"
         onerror="this.src='https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=600&q=80'"
         alt="UAE Ajman">
       <div class="gallery-item-formula">UAE</div>
@@ -2067,60 +2280,167 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ─── GITHUB IMAGE MANAGER ───
-let extraImageCount = 0;
+// ─── ADMIN PANEL ───────────────────────────────────────────────────────────
+const ADMIN_CREDS = { user: 'novax', pass: 'novax@2025' };
+const BASE_URL = 'https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/';
 
-function addGalleryImage() {
-  const urlEl    = document.getElementById('imgUrl');
-  const labelEl  = document.getElementById('imgLabel');
-  const formulaEl= document.getElementById('imgFormula');
-  const extraRow = document.getElementById('galleryExtraRow');
-  const countEl  = document.getElementById('imgCount');
+// Gallery image data (slots 3-11 = files 3.png-11.png, logo=1.png, about=2.png)
+const galleryImages = [
+  { num: 3,  label: 'Chemical Research Laboratory', formula: 'LAB',  fallback: 'photo-1563213126-a4273aed2016?w=900&q=80' },
+  { num: 4,  label: 'Acid & Reagent Jars',          formula: 'HCl',  fallback: 'photo-1532187863486-abf9dbad1b69?w=700&q=80' },
+  { num: 5,  label: 'Industrial Drum Storage',       formula: 'IBC',  fallback: 'photo-1576671081837-49000212a370?w=700&q=80' },
+  { num: 6,  label: 'Production Facility',           formula: 'MFG',  fallback: 'photo-1565043589221-1a6fd9ae45c7?w=700&q=80' },
+  { num: 7,  label: 'Pharma Grade Chemicals',        formula: 'API',  fallback: 'photo-1587854692152-cbe660dbde88?w=700&q=80' },
+  { num: 8,  label: 'Reagent Test Tubes',            formula: 'NaOH', fallback: 'photo-1559757148-5c350d0d3c56?w=600&q=80' },
+  { num: 9,  label: 'Bulk Liquid Storage Tanks',     formula: 'BULK', fallback: 'photo-1518611012118-696072aa579a?w=600&q=80' },
+  { num: 10, label: 'Chemical Barrel Yard',          formula: 'H₂SO₄',fallback: 'photo-1604754742629-3e5728249d73?w=600&q=80' },
+  { num: 11, label: 'Ajman Free Zone HQ',            formula: 'UAE',  fallback: 'photo-1507668077129-56e32842fceb?w=600&q=80' },
+];
+let _editingIndex = null;
 
-  const url     = urlEl.value.trim();
-  const label   = labelEl.value.trim() || 'Gallery Image';
+function openAdminPanel() {
+  document.getElementById('adminOverlay').classList.add('open');
+  document.getElementById('adminUser').focus();
+}
+function closeAdminPanel() {
+  document.getElementById('adminOverlay').classList.remove('open');
+}
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('adminOverlay')) closeAdminPanel();
+}
+function doAdminLogin() {
+  const u = document.getElementById('adminUser').value.trim();
+  const p = document.getElementById('adminPass').value;
+  const errEl = document.getElementById('loginError');
+  if (u === ADMIN_CREDS.user && p === ADMIN_CREDS.pass) {
+    document.getElementById('adminPanel').classList.add('authenticated');
+    errEl.style.display = 'none';
+    buildAdminGrid();
+    updateNextNumHint();
+  } else {
+    errEl.style.display = 'block';
+    document.getElementById('adminPass').value = '';
+    document.getElementById('adminPass').focus();
+  }
+}
+function doAdminLogout() {
+  document.getElementById('adminPanel').classList.remove('authenticated');
+  document.getElementById('adminUser').value = '';
+  document.getElementById('adminPass').value = '';
+  document.getElementById('loginError').style.display = 'none';
+  switchTab('gallery', document.querySelector('.admin-tab'));
+}
+function switchTab(id, btn) {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.admin-tab-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+  if (id === 'gallery') buildAdminGrid();
+}
+function buildAdminGrid() {
+  const grid = document.getElementById('adminImgGrid');
+  grid.innerHTML = '';
+  galleryImages.forEach((img, i) => {
+    const card = document.createElement('div');
+    card.className = 'admin-img-card';
+    card.innerHTML = `
+      <img src="${BASE_URL}${img.num}.png"
+           onerror="this.src='https://images.unsplash.com/${img.fallback}'"
+           alt="${escHtml(img.label)}">
+      <div class="admin-img-card-label">${img.num}.png — ${escHtml(img.formula)}</div>
+      <div class="admin-img-card-actions">
+        <button class="btn-edit-img" title="Edit label/formula" onclick="openEditPopup(${i},this)">✎</button>
+        <button class="btn-del-img"  title="Remove from gallery" onclick="adminDeleteImage(${i})">✕</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+  updateImgCount();
+}
+function openEditPopup(idx, btn) {
+  _editingIndex = idx;
+  const img = galleryImages[idx];
+  document.getElementById('editLabel').value   = img.label;
+  document.getElementById('editFormula').value = img.formula;
+  const popup = document.getElementById('editPopup');
+  const rect  = btn.getBoundingClientRect();
+  popup.style.top  = (rect.bottom + window.scrollY + 6) + 'px';
+  popup.style.left = Math.max(8, rect.left - 80) + 'px';
+  popup.classList.add('open');
+}
+function closeEditPopup() {
+  document.getElementById('editPopup').classList.remove('open');
+  _editingIndex = null;
+}
+function saveEditPopup() {
+  if (_editingIndex === null) return;
+  const label   = document.getElementById('editLabel').value.trim()   || galleryImages[_editingIndex].label;
+  const formula = document.getElementById('editFormula').value.trim() || galleryImages[_editingIndex].formula;
+  galleryImages[_editingIndex].label   = label;
+  galleryImages[_editingIndex].formula = formula;
+  // Update live gallery item
+  const allItems = document.querySelectorAll('#mainGallery .gallery-item, #subGallery .gallery-item, #galleryExtraRow .gallery-item');
+  if (allItems[_editingIndex]) {
+    const lbl = allItems[_editingIndex].querySelector('.gallery-item-label');
+    const frm = allItems[_editingIndex].querySelector('.gallery-item-formula');
+    if (lbl) lbl.textContent = label;
+    if (frm) frm.textContent = formula;
+  }
+  closeEditPopup();
+  buildAdminGrid();
+}
+function adminDeleteImage(idx) {
+  if (!confirm(`Remove image ${galleryImages[idx].num}.png from the gallery?`)) return;
+  galleryImages.splice(idx, 1);
+  // Remove the corresponding live gallery item
+  const allItems = document.querySelectorAll('#mainGallery .gallery-item, #subGallery .gallery-item, #galleryExtraRow .gallery-item');
+  if (allItems[idx]) allItems[idx].remove();
+  buildAdminGrid();
+  updateImgCount();
+}
+function adminAddImage() {
+  const numEl     = document.getElementById('addImgNum');
+  const labelEl   = document.getElementById('addImgLabel');
+  const formulaEl = document.getElementById('addImgFormula');
+  const numRaw    = numEl.value.trim();
+  const num       = parseInt(numRaw, 10);
+  if (!numRaw || isNaN(num) || num < 1) { alert('Enter a valid image number (e.g. 12)'); return; }
+  const label   = labelEl.value.trim()   || `Image ${num}`;
   const formula = formulaEl.value.trim() || 'IMG';
-
-  if (!url) { alert('Please enter a GitHub raw image URL.'); return; }
-  if (!/^https?:\/\//i.test(url)) { alert('Please enter a valid URL starting with https://'); return; }
-
-  extraImageCount++;
-  const slotId = 9 + extraImageCount;
-
+  const fallback= 'photo-1563213126-a4273aed2016?w=900&q=80';
+  galleryImages.push({ num, label, formula, fallback });
+  // Append to live gallery extra row
+  const extraRow = document.getElementById('galleryExtraRow');
   const div = document.createElement('div');
   div.className = 'gallery-item';
   div.innerHTML = `
-    <img data-slot="${slotId}"
-      src="${escHtml(url)}"
-      alt="${escHtml(label)}"
-      onerror="this.parentElement.style.opacity='0.4';this.parentElement.title='Image failed to load — check the URL';">
+    <img data-slot="${num}" data-name="${num}.png"
+         src="${BASE_URL}${num}.png"
+         onerror="this.src='https://images.unsplash.com/${fallback}'"
+         alt="${escHtml(label)}">
     <div class="gallery-item-formula">${escHtml(formula)}</div>
-    <div class="gallery-item-overlay"><div class="gallery-item-label">${escHtml(label)}</div></div>
-    <button onclick="this.parentElement.remove();updateImgCount();" style="position:absolute;top:0.5rem;right:0.5rem;background:rgba(0,0,0,0.6);border:none;color:#fff;width:26px;height:26px;border-radius:50%;font-size:0.85rem;cursor:pointer;z-index:10;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,50,50,0.7)'" onmouseout="this.style.background='rgba(0,0,0,0.6)'">✕</button>
-  `;
+    <div class="gallery-item-overlay"><div class="gallery-item-label">${escHtml(label)}</div></div>`;
   extraRow.appendChild(div);
-
-  // Animate in
   div.style.opacity = '0'; div.style.transform = 'scale(0.92)';
-  requestAnimationFrame(() => {
-    div.style.transition = 'opacity 0.45s ease, transform 0.45s ease';
-    div.style.opacity = '1'; div.style.transform = 'scale(1)';
-  });
-
-  // Clear inputs
-  urlEl.value = ''; labelEl.value = ''; formulaEl.value = '';
-  updateImgCount();
-  urlEl.focus();
+  requestAnimationFrame(() => { div.style.transition = 'opacity 0.45s ease, transform 0.45s ease'; div.style.opacity = '1'; div.style.transform = 'scale(1)'; });
+  numEl.value = ''; labelEl.value = ''; formulaEl.value = '';
+  buildAdminGrid();
+  updateNextNumHint();
+  // Switch to gallery tab to show result
+  switchTab('gallery', document.querySelectorAll('.admin-tab')[0]);
 }
-
+function updateNextNumHint() {
+  const nums = galleryImages.map(i => i.num);
+  const next = nums.length ? Math.max(...nums) + 1 : 12;
+  const el = document.getElementById('nextNumHint');
+  if (el) el.textContent = next;
+}
 function updateImgCount() {
-  const fixed = document.querySelectorAll('#mainGallery .gallery-item, #subGallery .gallery-item').length;
-  const extra = document.querySelectorAll('#galleryExtraRow .gallery-item').length;
-  document.getElementById('imgCount').textContent = fixed + extra;
+  const count = document.querySelectorAll('#mainGallery .gallery-item, #subGallery .gallery-item, #galleryExtraRow .gallery-item').length;
+  document.querySelectorAll('#imgCount').forEach(el => el.textContent = count);
 }
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeMobileNav(); }
+  if (e.key === 'Escape') { closeMobileNav(); closeAdminPanel(); closeEditPopup(); }
 });
 </script>
 </body>
