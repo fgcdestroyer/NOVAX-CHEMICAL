@@ -2796,5 +2796,474 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { closeMobileNav(); closeAdminPanel(); closeEditPopup(); closeAuthModal(); }
 });
 </script>
+
+<!-- ─── FLOATING DOCK BAR ─── -->
+<style>
+.dock-bar {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 8000;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(8, 14, 38, 0.72);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  border: 1px solid rgba(45,156,255,0.18);
+  border-radius: 100px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.45), 0 0 0 1px rgba(45,156,255,0.06);
+}
+.dock-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(.34,1.56,.64,1);
+  position: relative;
+  /* base size */
+  --sz: 44px;
+}
+.dock-item-icon {
+  width: var(--sz);
+  height: var(--sz);
+  border-radius: 50%;
+  background: rgba(26,58,143,0.25);
+  border: 1px solid rgba(45,156,255,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(138,155,192,0.8);
+  transition:
+    width 0.25s cubic-bezier(.34,1.56,.64,1),
+    height 0.25s cubic-bezier(.34,1.56,.64,1),
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s,
+    box-shadow 0.2s;
+}
+.dock-item:hover .dock-item-icon,
+.dock-item.active .dock-item-icon {
+  width: 62px;
+  height: 62px;
+  background: rgba(45,156,255,0.15);
+  border-color: rgba(45,156,255,0.5);
+  color: #fff;
+  box-shadow: 0 0 18px rgba(45,156,255,0.25), 0 4px 16px rgba(0,0,0,0.3);
+}
+/* Neighbour magnification — JS driven via CSS var */
+.dock-item[data-mag="1"] .dock-item-icon {
+  width: 56px; height: 56px;
+  background: rgba(45,156,255,0.09);
+  border-color: rgba(45,156,255,0.3);
+  color: rgba(255,255,255,0.8);
+}
+.dock-item-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(138,155,192,0.55);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.18s, transform 0.18s, color 0.18s;
+  white-space: nowrap;
+  pointer-events: none;
+  max-height: 14px;
+}
+.dock-item:hover .dock-item-label,
+.dock-item.active .dock-item-label {
+  opacity: 1;
+  transform: translateY(0);
+  color: rgba(45,156,255,0.9);
+}
+/* Active dot */
+.dock-item.active .dock-item-icon::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--electric, #2d9cff);
+}
+/* Tooltip on desktop */
+.dock-item-tooltip {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(6,11,32,0.92);
+  border: 1px solid rgba(45,156,255,0.22);
+  border-radius: 6px;
+  padding: 0.3rem 0.7rem;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--white, #fff);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  backdrop-filter: blur(8px);
+}
+.dock-item:hover .dock-item-tooltip { opacity: 1; }
+
+/* Novax assistant panel */
+.dock-assistant-panel {
+  display: none;
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(420px, calc(100vw - 32px));
+  background: linear-gradient(160deg,#0d1535,#060b20);
+  border: 1px solid rgba(45,156,255,0.22);
+  border-radius: 16px;
+  z-index: 7999;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  overflow: hidden;
+  animation: dockPanelIn 0.28s cubic-bezier(.34,1.56,.64,1);
+}
+.dock-assistant-panel.open { display: flex; flex-direction: column; }
+@keyframes dockPanelIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px) scale(0.96); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+.dap-header {
+  display: flex; align-items: center; gap: 0.8rem;
+  padding: 1rem 1.2rem 0.8rem;
+  border-bottom: 1px solid rgba(45,156,255,0.1);
+}
+.dap-header-icon {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg,#1d5bbf,#2d9cff);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.dap-title { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:0.15em; color:#fff; }
+.dap-sub { font-family:'Rajdhani',sans-serif; font-size:0.65rem; letter-spacing:0.2em; color:rgba(138,155,192,0.7); text-transform:uppercase; }
+.dap-close {
+  margin-left:auto; background:none; border:none; color:rgba(138,155,192,0.5);
+  font-size:1.1rem; cursor:pointer; padding:0.2rem; transition:color 0.2s;
+}
+.dap-close:hover { color:#fff; }
+.dap-msgs {
+  flex:1; overflow-y:auto; padding:0.9rem 1.1rem;
+  display:flex; flex-direction:column; gap:0.6rem;
+  max-height: 240px;
+}
+.dap-msgs::-webkit-scrollbar { width:3px; }
+.dap-msgs::-webkit-scrollbar-thumb { background:rgba(45,156,255,0.25); border-radius:2px; }
+.dap-msg {
+  max-width:85%; padding:0.55rem 0.85rem;
+  border-radius:10px; font-family:'Outfit',sans-serif; font-size:0.83rem; line-height:1.55;
+}
+.dap-msg.bot {
+  background:rgba(26,58,143,0.2); border:1px solid rgba(45,156,255,0.12);
+  color:rgba(200,210,240,0.9); align-self:flex-start; border-radius:4px 10px 10px 10px;
+}
+.dap-msg.user {
+  background:rgba(45,156,255,0.14); border:1px solid rgba(45,156,255,0.22);
+  color:#fff; align-self:flex-end; border-radius:10px 4px 10px 10px;
+}
+.dap-typing { display:flex; gap:4px; align-items:center; padding:0.4rem 0; }
+.dap-typing span {
+  width:6px; height:6px; border-radius:50%; background:rgba(45,156,255,0.5);
+  animation: dapBlink 1.2s infinite;
+}
+.dap-typing span:nth-child(2) { animation-delay:0.2s; }
+.dap-typing span:nth-child(3) { animation-delay:0.4s; }
+@keyframes dapBlink { 0%,80%,100%{opacity:0.3} 40%{opacity:1} }
+.dap-input-row {
+  display:flex; gap:0.5rem; padding:0.75rem 1rem;
+  border-top:1px solid rgba(45,156,255,0.1);
+}
+.dap-input {
+  flex:1; background:rgba(26,58,143,0.12); border:1px solid rgba(45,156,255,0.18);
+  border-radius:8px; padding:0.5rem 0.8rem; color:#fff;
+  font-family:'Outfit',sans-serif; font-size:0.83rem; outline:none;
+  transition:border-color 0.2s;
+}
+.dap-input:focus { border-color:rgba(45,156,255,0.45); }
+.dap-input::placeholder { color:rgba(138,155,192,0.38); }
+.dap-send {
+  width:36px; height:36px; border-radius:8px; flex-shrink:0;
+  background:linear-gradient(135deg,#1d5bbf,#2d9cff);
+  border:none; color:#fff; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:opacity 0.2s;
+}
+.dap-send:hover { opacity:0.85; }
+
+/* Info panel */
+.dock-info-panel {
+  display: none;
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(380px, calc(100vw - 32px));
+  background: linear-gradient(160deg,#0d1535,#060b20);
+  border: 1px solid rgba(45,156,255,0.22);
+  border-radius: 16px;
+  z-index: 7999;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  padding: 1.4rem 1.5rem;
+  animation: dockPanelIn 0.28s cubic-bezier(.34,1.56,.64,1);
+}
+.dock-info-panel.open { display: block; }
+.dip-title { font-family:'Bebas Neue',sans-serif; font-size:1.2rem; letter-spacing:0.18em; color:#fff; margin-bottom:0.9rem; display:flex; align-items:center; justify-content:space-between; }
+.dip-close { background:none; border:none; color:rgba(138,155,192,0.5); font-size:1.1rem; cursor:pointer; transition:color 0.2s; }
+.dip-close:hover { color:#fff; }
+.dip-row { display:flex; align-items:flex-start; gap:0.7rem; margin-bottom:0.75rem; }
+.dip-icon { width:32px; height:32px; border-radius:8px; background:rgba(26,58,143,0.3); border:1px solid rgba(45,156,255,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:rgba(45,156,255,0.8); }
+.dip-label { font-family:'Rajdhani',sans-serif; font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:rgba(45,156,255,0.7); }
+.dip-value { font-family:'Outfit',sans-serif; font-size:0.83rem; color:rgba(200,210,240,0.85); line-height:1.5; }
+
+@media (max-width: 600px) {
+  .dock-bar { gap: 8px; padding: 8px 12px; bottom: 18px; }
+  .dock-item { --sz: 40px; }
+  .dock-item:hover .dock-item-icon,
+  .dock-item.active .dock-item-icon { width: 54px; height: 54px; }
+}
+</style>
+
+<!-- Dock HTML -->
+<div class="dock-bar" id="dockBar">
+
+  <!-- Home -->
+  <div class="dock-item active" id="dock-home" onclick="dockNav('home')" onmouseenter="dockMag(0)" onmouseleave="dockUnmag()">
+    <div class="dock-item-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    </div>
+    <div class="dock-item-label">Home</div>
+    <div class="dock-item-tooltip">Home</div>
+  </div>
+
+  <!-- Novax Assistant -->
+  <div class="dock-item" id="dock-assistant" onclick="dockNav('assistant')" onmouseenter="dockMag(1)" onmouseleave="dockUnmag()">
+    <div class="dock-item-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
+    <div class="dock-item-label">Assistant</div>
+    <div class="dock-item-tooltip">Novax Assistant</div>
+  </div>
+
+  <!-- Products -->
+  <div class="dock-item" id="dock-products" onclick="dockNav('products')" onmouseenter="dockMag(2)" onmouseleave="dockUnmag()">
+    <div class="dock-item-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="7" height="7"/><rect x="15" y="3" width="7" height="7"/><rect x="2" y="14" width="7" height="7"/><rect x="15" y="14" width="7" height="7"/></svg>
+    </div>
+    <div class="dock-item-label">Products</div>
+    <div class="dock-item-tooltip">Product Portfolio</div>
+  </div>
+
+  <!-- Info -->
+  <div class="dock-item" id="dock-info" onclick="dockNav('info')" onmouseenter="dockMag(3)" onmouseleave="dockUnmag()">
+    <div class="dock-item-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <div class="dock-item-label">Info</div>
+    <div class="dock-item-tooltip">Company Info</div>
+  </div>
+
+</div>
+
+<!-- Assistant floating panel -->
+<div class="dock-assistant-panel" id="dockAssistantPanel">
+  <div class="dap-header">
+    <div class="dap-header-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
+    <div>
+      <div class="dap-title">Novax Assistant</div>
+      <div class="dap-sub">Chemical Trading · UAE</div>
+    </div>
+    <button class="dap-close" onclick="closeDockPanel('assistant')">✕</button>
+  </div>
+  <div class="dap-msgs" id="dapMsgs">
+    <div class="dap-msg bot">Hello! I'm the Novax Assistant. Ask me about our products, pricing, delivery, or company details.</div>
+  </div>
+  <div class="dap-input-row">
+    <input class="dap-input" id="dapInput" placeholder="Ask about HCl, NaOH, delivery…" onkeydown="if(event.key==='Enter')dapSend()">
+    <button class="dap-send" onclick="dapSend()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- Info floating panel -->
+<div class="dock-info-panel" id="dockInfoPanel">
+  <div class="dip-title">
+    Company Info
+    <button class="dip-close" onclick="closeDockPanel('info')">✕</button>
+  </div>
+  <div class="dip-row">
+    <div class="dip-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+    <div><div class="dip-label">Registered Address</div><div class="dip-value">Ajman Free Zone, UAE<br>P.O. Box — AFZA</div></div>
+  </div>
+  <div class="dip-row">
+    <div class="dip-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1.24h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.29 6.29l.82-.82a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+    <div><div class="dip-label">Phone</div><div class="dip-value">+971 6 XXX XXXX</div></div>
+  </div>
+  <div class="dip-row">
+    <div class="dip-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+    <div><div class="dip-label">Email</div><div class="dip-value">info@novaxchemical.com</div></div>
+  </div>
+  <div class="dip-row">
+    <div class="dip-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+    <div><div class="dip-label">Business</div><div class="dip-value">Chemical Trading &amp; Distribution<br>Import · Export · Wholesale</div></div>
+  </div>
+</div>
+
+<script>
+// ─── DOCK BAR ────────────────────────────────────────────────────────────────
+const dockItems = ['home','assistant','products','info'];
+let dockActivePanel = null;
+
+function dockNav(id) {
+  // Mark active
+  dockItems.forEach(d => document.getElementById('dock-'+d).classList.remove('active'));
+  document.getElementById('dock-'+id).classList.add('active');
+
+  if (id === 'home') {
+    closeDockPanel(dockActivePanel);
+    window.scrollTo({top:0, behavior:'smooth'});
+    return;
+  }
+  if (id === 'products') {
+    closeDockPanel(dockActivePanel);
+    document.getElementById('products')?.scrollIntoView({behavior:'smooth'});
+    return;
+  }
+  if (id === 'assistant') {
+    if (dockActivePanel === 'assistant') { closeDockPanel('assistant'); return; }
+    closeDockPanel(dockActivePanel);
+    dockActivePanel = 'assistant';
+    document.getElementById('dockAssistantPanel').classList.add('open');
+    setTimeout(() => document.getElementById('dapInput').focus(), 100);
+    return;
+  }
+  if (id === 'info') {
+    if (dockActivePanel === 'info') { closeDockPanel('info'); return; }
+    closeDockPanel(dockActivePanel);
+    dockActivePanel = 'info';
+    document.getElementById('dockInfoPanel').classList.add('open');
+    return;
+  }
+}
+
+function closeDockPanel(id) {
+  if (!id) return;
+  document.getElementById('dockAssistantPanel').classList.remove('open');
+  document.getElementById('dockInfoPanel').classList.remove('open');
+  dockActivePanel = null;
+}
+
+// Magnification of neighbours
+function dockMag(hoveredIdx) {
+  dockItems.forEach((d, i) => {
+    const el = document.getElementById('dock-'+d);
+    const dist = Math.abs(i - hoveredIdx);
+    el.removeAttribute('data-mag');
+    if (dist === 1) el.setAttribute('data-mag', '1');
+  });
+}
+function dockUnmag() {
+  dockItems.forEach(d => document.getElementById('dock-'+d).removeAttribute('data-mag'));
+}
+
+// Update active dock item on scroll
+window.addEventListener('scroll', () => {
+  const sections = {home:0, products: document.getElementById('products')?.offsetTop||9999};
+  const y = window.scrollY;
+  const hasPanel = dockActivePanel;
+  if (!hasPanel) {
+    if (y < (sections.products - 200)) {
+      dockItems.forEach(d => document.getElementById('dock-'+d).classList.remove('active'));
+      document.getElementById('dock-home').classList.add('active');
+    } else if (y >= (sections.products - 200)) {
+      dockItems.forEach(d => document.getElementById('dock-'+d).classList.remove('active'));
+      document.getElementById('dock-products').classList.add('active');
+    }
+  }
+}, {passive:true});
+
+// Close panels when clicking outside
+document.addEventListener('click', e => {
+  if (!dockActivePanel) return;
+  const bar   = document.getElementById('dockBar');
+  const aPanel= document.getElementById('dockAssistantPanel');
+  const iPanel= document.getElementById('dockInfoPanel');
+  if (!bar.contains(e.target) && !aPanel.contains(e.target) && !iPanel.contains(e.target)) {
+    closeDockPanel(dockActivePanel);
+    // restore scroll-based active state
+    window.dispatchEvent(new Event('scroll'));
+  }
+});
+
+// ─── NOVAX ASSISTANT (Anthropic-powered) ─────────────────────────────────────
+const DAP_SYSTEM = `You are the Novax Chemical Assistant. Novax Chemical FZE LLC is a chemical trading and distribution company based in Ajman Free Zone, UAE. 
+They trade industrial, pharmaceutical, and specialty chemicals including: Hydrochloric Acid (HCl), Sulphuric Acid, Caustic Soda (NaOH), Hydrogen Peroxide, Soda Ash, Sodium Hypochlorite, Acetic Acid, Isopropyl Alcohol, and hundreds more.
+Answer questions about products, delivery, bulk orders, pricing, or the company. Be concise, professional, and helpful. If you don't know a specific price, say pricing depends on quantity and to contact via the form.`;
+
+let dapHistory = [];
+
+async function dapSend() {
+  const input = document.getElementById('dapInput');
+  const msgs  = document.getElementById('dapMsgs');
+  const text  = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  // User bubble
+  const uDiv = document.createElement('div');
+  uDiv.className = 'dap-msg user';
+  uDiv.textContent = text;
+  msgs.appendChild(uDiv);
+
+  // Typing indicator
+  const typing = document.createElement('div');
+  typing.className = 'dap-msg bot dap-typing';
+  typing.innerHTML = '<span></span><span></span><span></span>';
+  msgs.appendChild(typing);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  dapHistory.push({role:'user', content: text});
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: DAP_SYSTEM,
+        messages: dapHistory
+      })
+    });
+    const data = await res.json();
+    const reply = data.content?.map(b => b.text||'').join('') || 'Sorry, I couldn\'t get a response.';
+    dapHistory.push({role:'assistant', content: reply});
+
+    typing.remove();
+    const bDiv = document.createElement('div');
+    bDiv.className = 'dap-msg bot';
+    bDiv.textContent = reply;
+    msgs.appendChild(bDiv);
+  } catch {
+    typing.remove();
+    const bDiv = document.createElement('div');
+    bDiv.className = 'dap-msg bot';
+    bDiv.textContent = 'Connection error. Please try again.';
+    msgs.appendChild(bDiv);
+  }
+  msgs.scrollTop = msgs.scrollHeight;
+}
+</script>
 </body>
 </html>
