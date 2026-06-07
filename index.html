@@ -75,9 +75,11 @@ nav {
 .nav-cta:hover { background: var(--electric); color: var(--navy); }
 
 /* ─── AUTH NAV ─── */
+.nav-end {
+  display: flex; align-items: center; gap: 8px;
+}
 .nav-auth {
   display: flex; align-items: center;
-  /* sits after hamburger via HTML order */
 }
 /* Icon-only button when logged OUT */
 .nav-auth-btn {
@@ -1125,7 +1127,7 @@ footer {
   .nav-links { display: none; }
   .nav-cta { display: none; }
   .nav-hamburger { display: flex; }
-  .nav-auth { margin-left: 0; }
+  .nav-end { gap: 6px; }
 
   /* HERO */
   .hero { padding: 6rem 1.4rem 3rem; min-height: 100svh; align-items: flex-start; }
@@ -1216,12 +1218,14 @@ footer {
   </ul>
   <button class="nav-cta" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Request Quote</button>
 
-  <button class="nav-hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
+  <!-- Right-side group: hamburger (mobile) + auth icon (always) -->
+  <div class="nav-end">
+    <button class="nav-hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
 
-  <!-- Auth controls — far right, icon only -->
-  <div class="nav-auth">
+    <!-- Auth controls — icon only -->
+    <div class="nav-auth">
     <!-- Logged OUT: icon button -->
     <button class="nav-auth-btn" id="navSignInBtn" onclick="openAuthModal('login')" title="Sign In">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -1247,7 +1251,8 @@ footer {
         </button>
       </div>
     </div>
-  </div>
+  </div><!-- /nav-auth -->
+  </div><!-- /nav-end -->
 </nav>
 
 <!-- MOBILE MENU -->
