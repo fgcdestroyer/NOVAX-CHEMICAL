@@ -911,6 +911,9 @@ footer {
 
 @keyframes shimmer { 0%{background-position:-200% center;} 100%{background-position:200% center;} }
 
+/* chat toggle hidden — dock bar is used instead */
+#chat-toggle { display: none !important; }
+
 /* ─── AI CHATBOX ─── */
 #chat-toggle {
   position: fixed; bottom: 2rem; right: 2rem; z-index: 500;
@@ -932,17 +935,18 @@ footer {
 @keyframes chatPulse { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.3);opacity:0.6;} }
 
 #chat-panel {
-  position: fixed; bottom: 6.5rem; right: 2rem; z-index: 500;
-  width: 360px; height: 500px;
+  position: fixed; bottom: 92px; right: 2rem; z-index: 7990;
+  width: 360px; height: 520px;
   background: rgba(6,11,32,0.97);
   border: 1px solid rgba(45,156,255,0.2);
-  border-radius: 12px;
+  border-radius: 16px;
   display: flex; flex-direction: column;
   box-shadow: 0 20px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(45,156,255,0.08);
   backdrop-filter: blur(20px);
-  transform: translateY(20px) scale(0.95);
+  -webkit-backdrop-filter: blur(20px);
+  transform: translateY(16px) scale(0.97);
   opacity: 0; pointer-events: none;
-  transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
 }
 #chat-panel.open {
   transform: translateY(0) scale(1);
@@ -1177,7 +1181,15 @@ footer {
 
   /* CHAT */
   #chat-toggle { bottom: 1.2rem; right: 1.2rem; width: 52px; height: 52px; }
-  #chat-panel { width: calc(100vw - 2rem) !important; right: 1rem !important; bottom: 5.5rem !important; height: 65vh !important; }
+  #chat-panel {
+    width: calc(100vw - 1.6rem) !important;
+    right: 0.8rem !important;
+    left: 0.8rem !important;
+    bottom: 90px !important;
+    height: calc(var(--vh, 1vh) * 62) !important;
+    max-height: 520px !important;
+    border-radius: 16px !important;
+  }
 
   /* TICKER */
   .chem-ticker-inner { animation-duration: 20s; }
@@ -2263,19 +2275,25 @@ function handleFormSubmit() {
 let chatOpen = false;
 const chatHistory = [];
 
-const SYSTEM_PROMPT = `You are the AI assistant for NOVAX CHEMICAL FZE LLC, a chemical trading company based in the Ajman Free Zone (ANC), United Arab Emirates.
-
-Your role: Answer questions about NOVAX CHEMICAL's products, services, trade capabilities, and how to contact the company. Be professional, concise, and helpful.
+const SYSTEM_PROMPT = `You are the AI assistant for NOVAX CHEMICAL FZE LLC, a chemical trading company based in the Ajman Free Zone, United Arab Emirates.
 
 Company facts:
 - Full name: NOVAX CHEMICAL FZE LLC
-- Location: 26th Floor, Amber Gem Tower, Ajman, UAE (ANC Free Zone)
+- Location: 26th Floor, Amber Gem Tower, Ajman, UAE (Ajman Free Zone)
+- Phone/WhatsApp: +971 54 704 9945
 - Email: novaxchemical@gmail.com
-- Activities: Wholesale import & export of chemicals including building chemicals, pharmaceutical chemicals, oil well chemicals, synthetic chemicals, chemical fertilizers, basic industrial chemicals, acids & alkalines, perfume/fragrances, detergents & disinfectants, sterilizers & disinfectants
-- They serve industries: construction, pharma, oil & gas, agriculture, industrial manufacturing, fragrance/cosmetics, cleaning industry
-- Trade: International import & export, wholesale B2B
+- Activities: Wholesale import & export of chemicals — industrial, pharmaceutical, agricultural, oil & gas, building, synthetic, fragrance, detergents & disinfectants, acids & alkalines
 
-Keep responses short (2-4 sentences max). For pricing or specific orders, always direct to email: novaxchemical@gmail.com. Don't reveal any private or confidential business details. If asked something outside your knowledge, politely say you'll connect them with the team.`;
+PRODUCTS we supply (examples — full list on our portfolio page):
+Hydrochloric Acid (HCl), Sulphuric Acid, Caustic Soda (NaOH), Hydrogen Peroxide, Soda Ash, Sodium Hypochlorite, Acetic Acid, Isopropyl Alcohol, Acetone, Methanol, Phosphoric Acid, Nitric Acid, Citric Acid, Sodium Bicarbonate, Zinc Sulphate, Potassium Hydroxide, Glycerine, and hundreds more across all chemical categories.
+
+QUICK BUTTON ANSWERS:
+- "Our products" → List key product categories: Industrial Acids, Alkalis & Bases, Solvents, Pharma APIs, Agricultural Chemicals, Cleaning & Disinfectants, Oil & Gas Chemicals. Mention they can search the full portfolio on the website.
+- "Get a quote" → Ask the user to send their product name, quantity, delivery location to novaxchemical@gmail.com or WhatsApp +971 54 704 9945. Mention response within 24 hours.
+- "Location" → 26th Floor, Amber Gem Tower, Ajman, UAE. Part of Ajman Free Zone (ANC). Also reachable by phone/WhatsApp: +971 54 704 9945.
+- "Export info" → Yes, Novax Chemical exports internationally. For export details, documentation, and pricing contact novaxchemical@gmail.com or WhatsApp +971 54 704 9945.
+
+Keep responses concise (3-5 sentences max). Always end with a clear next step (email, WhatsApp, or browse portfolio). Never invent prices.`;
 
 function toggleChat() {
   chatOpen = !chatOpen;
@@ -2665,6 +2683,19 @@ function showMsg(el, type, text) {
 // Apply auth state on page load
 document.addEventListener('DOMContentLoaded', applyAuthState);
 
+// ─── iOS Safari vh fix ───────────────────────────────────────────────────────
+function setVh() {
+  document.documentElement.style.setProperty('--vh', window.innerHeight * 0.01 + 'px');
+}
+setVh();
+window.addEventListener('resize', setVh);
+
+// ─── Dock touch support (mobile magnify) ─────────────────────────────────────
+document.querySelectorAll('.dock-item').forEach((el, idx) => {
+  el.addEventListener('touchstart', () => dockMag(idx), {passive:true});
+  el.addEventListener('touchend', () => { setTimeout(dockUnmag, 300); }, {passive:true});
+});
+
 // ─── ADMIN PANEL ───────────────────────────────────────────────────────────
 const BASE_URL = 'https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/';
 
@@ -2876,36 +2907,7 @@ document.addEventListener('keydown', e => {
   border-color: rgba(45,156,255,0.22);
   color: rgba(255,255,255,0.75);
 }
-/* Labels — only on hover, never on active */
-.dock-item-label {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 0.6rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(45,156,255,0.85);
-  opacity: 0;
-  transform: translateY(3px);
-  transition: opacity 0.15s, transform 0.15s;
-  white-space: nowrap;
-  pointer-events: none;
-  max-height: 14px;
-}
-.dock-item:hover .dock-item-label {
-  opacity: 1;
-  transform: translateY(0);
-}
-/* Active dot indicator only — no size change */
-.dock-item.active .dock-item-icon::after {
-  content: '';
-  position: absolute;
-  bottom: -7px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 4px; height: 4px;
-  border-radius: 50%;
-  background: var(--electric, #2d9cff);
-  box-shadow: 0 0 6px rgba(45,156,255,0.6);
-}
+/* Labels — only on hover */
 /* Tooltip on desktop */
 .dock-item-tooltip {
   position: absolute;
@@ -3040,10 +3042,16 @@ document.addEventListener('keydown', e => {
 .dip-value { font-family:'Outfit',sans-serif; font-size:0.83rem; color:rgba(200,210,240,0.85); line-height:1.5; }
 
 @media (max-width: 600px) {
-  .dock-bar { gap: 8px; padding: 8px 12px; bottom: 18px; }
-  .dock-item { --sz: 40px; }
+  .dock-bar {
+    gap: 6px;
+    padding: 8px 10px;
+    bottom: max(16px, env(safe-area-inset-bottom, 16px));
+  }
+  .dock-item { --sz: 42px; }
   .dock-item:hover .dock-item-icon,
-  .dock-item.active .dock-item-icon { width: 54px; height: 54px; }
+  .dock-item:active .dock-item-icon { width: 52px; height: 52px; }
+  .dock-item[data-mag="1"] .dock-item-icon { width: 46px; height: 46px; }
+  .dock-item-tooltip { display: none; }
 }
 </style>
 
@@ -3055,7 +3063,6 @@ document.addEventListener('keydown', e => {
     <div class="dock-item-icon">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     </div>
-    <div class="dock-item-label">Home</div>
     <div class="dock-item-tooltip">Home</div>
   </div>
 
@@ -3064,7 +3071,6 @@ document.addEventListener('keydown', e => {
     <div class="dock-item-icon">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
     </div>
-    <div class="dock-item-label">Assistant</div>
     <div class="dock-item-tooltip">Novax Assistant</div>
   </div>
 
@@ -3073,7 +3079,6 @@ document.addEventListener('keydown', e => {
     <div class="dock-item-icon">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="7" height="7"/><rect x="15" y="3" width="7" height="7"/><rect x="2" y="14" width="7" height="7"/><rect x="15" y="14" width="7" height="7"/></svg>
     </div>
-    <div class="dock-item-label">Products</div>
     <div class="dock-item-tooltip">Product Portfolio</div>
   </div>
 
@@ -3082,7 +3087,6 @@ document.addEventListener('keydown', e => {
     <div class="dock-item-icon">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1.24h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.29 6.29l.82-.82a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
     </div>
-    <div class="dock-item-label">Contact</div>
     <div class="dock-item-tooltip">Contact Us</div>
   </div>
 
@@ -3156,11 +3160,10 @@ function dockNav(id) {
     return;
   }
   if (id === 'assistant') {
-    if (dockActivePanel === 'assistant') { closeDockPanel('assistant'); return; }
-    closeDockPanel(dockActivePanel);
-    dockActivePanel = 'assistant';
-    document.getElementById('dockAssistantPanel').classList.add('open');
-    setTimeout(() => document.getElementById('dapInput').focus(), 100);
+    // Toggle the existing right-side chat panel
+    toggleChat();
+    // Don't mark as active — just trigger
+    dockItems.forEach(d => document.getElementById('dock-'+d).classList.remove('active'));
     return;
   }
   if (id === 'info') {
@@ -3190,32 +3193,14 @@ function dockUnmag() {
   dockItems.forEach(d => document.getElementById('dock-'+d).removeAttribute('data-mag'));
 }
 
-// Update active dock item on scroll
-window.addEventListener('scroll', () => {
-  const sections = {home:0, products: document.getElementById('products')?.offsetTop||9999};
-  const y = window.scrollY;
-  const hasPanel = dockActivePanel;
-  if (!hasPanel) {
-    if (y < (sections.products - 200)) {
-      dockItems.forEach(d => document.getElementById('dock-'+d).classList.remove('active'));
-      document.getElementById('dock-home').classList.add('active');
-    } else if (y >= (sections.products - 200)) {
-      dockItems.forEach(d => document.getElementById('dock-'+d).classList.remove('active'));
-      document.getElementById('dock-products').classList.add('active');
-    }
-  }
-}, {passive:true});
-
 // Close panels when clicking outside
 document.addEventListener('click', e => {
   if (!dockActivePanel) return;
   const bar   = document.getElementById('dockBar');
   const aPanel= document.getElementById('dockAssistantPanel');
   const iPanel= document.getElementById('dockInfoPanel');
-  if (!bar.contains(e.target) && !aPanel.contains(e.target) && !iPanel.contains(e.target)) {
+  if (!bar.contains(e.target) && !aPanel?.contains(e.target) && !iPanel?.contains(e.target)) {
     closeDockPanel(dockActivePanel);
-    // restore scroll-based active state
-    window.dispatchEvent(new Event('scroll'));
   }
 });
 
