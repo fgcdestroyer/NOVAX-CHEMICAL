@@ -1252,10 +1252,14 @@ footer {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
           Gallery
         </a>
-        <button onclick="openAdminPanel()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Manage Gallery
-        </button>
+        <a href="#products" onclick="closeMobileNav()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Products
+        </a>
+        <a href="#contact" onclick="closeMobileNav()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1.24h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.29 6.29l.82-.82a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          Contact
+        </a>
         <div class="dropdown-sep"></div>
         <button class="dropdown-logout" onclick="doNavLogout()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -1282,22 +1286,26 @@ footer {
   <div class="auth-card">
     <button class="auth-close" onclick="closeAuthModal()">✕</button>
 
-    <!-- Brand -->
     <div class="auth-brand">
       <div class="auth-brand-icon">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       </div>
       <div>
         <div class="auth-brand-text">NOVAX</div>
-        <div class="auth-brand-sub">Admin Access</div>
+        <div class="auth-brand-sub">Member Portal</div>
       </div>
     </div>
 
-    <!-- LOGIN only -->
+    <div class="auth-tabs">
+      <button class="auth-tab-btn active" id="tabLoginBtn" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab-btn" id="tabRegBtn" onclick="switchAuthTab('register')">Register</button>
+    </div>
+
+    <!-- LOGIN -->
     <div id="authLoginPane">
       <div class="auth-field">
-        <label>Username</label>
-        <input type="text" id="loginIdent" placeholder="Enter username" autocomplete="username">
+        <label>Username or Email</label>
+        <input type="text" id="loginIdent" placeholder="Enter username or email" autocomplete="username">
       </div>
       <div class="auth-field">
         <label>Password</label>
@@ -1305,6 +1313,33 @@ footer {
       </div>
       <button class="auth-submit" onclick="doLogin()">Sign In</button>
       <div class="auth-msg" id="loginMsg"></div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="authRegPane" style="display:none;">
+      <div class="auth-field">
+        <label>Full Name</label>
+        <input type="text" id="regName" placeholder="Your full name" autocomplete="name">
+      </div>
+      <div class="auth-field">
+        <label>Username</label>
+        <input type="text" id="regUser" placeholder="Choose a username" autocomplete="username">
+      </div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="regEmail" placeholder="your@email.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="regPw" placeholder="Min. 6 characters" autocomplete="new-password" oninput="checkPwStrength(this.value)">
+        <div class="pw-strength"><div class="pw-bar" id="pb1"></div><div class="pw-bar" id="pb2"></div><div class="pw-bar" id="pb3"></div><div class="pw-bar" id="pb4"></div></div>
+      </div>
+      <div class="auth-field">
+        <label>Confirm Password</label>
+        <input type="password" id="regPw2" placeholder="Repeat password" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()">
+      </div>
+      <button class="auth-submit" onclick="doRegister()">Create Account</button>
+      <div class="auth-msg" id="regMsg"></div>
     </div>
   </div>
 </div>
@@ -2522,7 +2557,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ─── AUTH SYSTEM ────────────────────────────────────────────────────────────
-// Single fixed admin account — no public registration
 const ADMIN_USER = 'novax';
 const ADMIN_PASS = 'novax@2025';
 
@@ -2533,11 +2567,19 @@ function hashSimple(str) {
 }
 const ADMIN_HASH = hashSimple(ADMIN_PASS);
 
+function getUsers() {
+  try { return JSON.parse(localStorage.getItem('novax_users') || '[]'); } catch { return []; }
+}
+function saveUsers(arr) { localStorage.setItem('novax_users', JSON.stringify(arr)); }
 function getSession() {
   try { return JSON.parse(sessionStorage.getItem('novax_session') || 'null'); } catch { return null; }
 }
 function saveSession(s) { sessionStorage.setItem('novax_session', JSON.stringify(s)); }
 function clearSession() { sessionStorage.removeItem('novax_session'); }
+
+function isAdmin(sess) {
+  return sess && sess.username === ADMIN_USER && sess.isAdmin;
+}
 
 function applyAuthState() {
   const sess = getSession();
@@ -2549,11 +2591,12 @@ function applyAuthState() {
   if (sess) {
     signInBtn.style.display = 'none';
     userChip.style.display  = 'flex';
-    avatar.textContent = 'N';
-    uname.textContent  = ADMIN_USER;
-    if (adminBtn) adminBtn.style.display = 'flex';
+    avatar.textContent = (sess.name || sess.username).charAt(0).toUpperCase();
+    uname.textContent  = sess.username;
+    // Only show gallery admin button if admin
+    if (adminBtn) adminBtn.style.display = isAdmin(sess) ? 'flex' : 'none';
     const sub = document.getElementById('adminPanelUser');
-    if (sub) sub.textContent = 'Signed in as ' + ADMIN_USER;
+    if (sub) sub.textContent = 'Signed in as ' + sess.username;
   } else {
     signInBtn.style.display = 'flex';
     userChip.style.display  = 'none';
@@ -2563,39 +2606,85 @@ function applyAuthState() {
 
 function openAuthModal(tab) {
   document.getElementById('authOverlay').classList.add('open');
+  switchAuthTab(tab || 'login');
   setTimeout(() => document.getElementById('loginIdent').focus(), 80);
 }
 function closeAuthModal() {
   document.getElementById('authOverlay').classList.remove('open');
   document.getElementById('loginMsg').textContent = '';
+  document.getElementById('regMsg').textContent   = '';
 }
 function handleAuthOverlayClick(e) {
   if (e.target === document.getElementById('authOverlay')) closeAuthModal();
 }
 function switchAuthTab(tab) {
-  // Only login tab exists now — no-op for other tabs
+  const isLogin = tab === 'login';
+  document.getElementById('authLoginPane').style.display = isLogin ? 'block' : 'none';
+  document.getElementById('authRegPane').style.display   = isLogin ? 'none'  : 'block';
+  document.getElementById('tabLoginBtn').classList.toggle('active', isLogin);
+  document.getElementById('tabRegBtn').classList.toggle('active', !isLogin);
+  if (isLogin) setTimeout(() => document.getElementById('loginIdent').focus(), 60);
+  else         setTimeout(() => document.getElementById('regName').focus(), 60);
 }
 
 function doLogin() {
   const ident = document.getElementById('loginIdent').value.trim();
   const pw    = document.getElementById('loginPw').value;
   const msg   = document.getElementById('loginMsg');
-  if (!ident || !pw) { showMsg(msg, 'error', 'Please enter credentials.'); return; }
+  if (!ident || !pw) { showMsg(msg, 'error', 'Please fill in all fields.'); return; }
+
+  // Check fixed admin first
   if ((ident === ADMIN_USER) && hashSimple(pw) === ADMIN_HASH) {
-    saveSession({ username: ADMIN_USER });
-    showMsg(msg, 'success', '✓ Access granted. Welcome back.');
+    saveSession({ username: ADMIN_USER, name: 'Admin', isAdmin: true });
+    showMsg(msg, 'success', '✓ Welcome back, Admin.');
     setTimeout(() => { closeAuthModal(); applyAuthState(); }, 800);
-  } else {
-    showMsg(msg, 'error', '⚠ Invalid credentials.');
-    document.getElementById('loginPw').value = '';
-    document.getElementById('loginPw').focus();
+    return;
   }
+  // Check registered users
+  const users = getUsers();
+  const user  = users.find(u => (u.username === ident || u.email === ident) && u.pwHash === hashSimple(pw));
+  if (!user) { showMsg(msg, 'error', '⚠ Invalid username or password.'); document.getElementById('loginPw').value=''; return; }
+  saveSession({ username: user.username, name: user.name, email: user.email, isAdmin: false });
+  showMsg(msg, 'success', '✓ Welcome back, ' + (user.name || user.username) + '!');
+  setTimeout(() => { closeAuthModal(); applyAuthState(); }, 800);
 }
 
-// Keep doRegister as no-op (button hidden)
-function doRegister() {}
+function doRegister() {
+  const name  = document.getElementById('regName').value.trim();
+  const user  = document.getElementById('regUser').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pw    = document.getElementById('regPw').value;
+  const pw2   = document.getElementById('regPw2').value;
+  const msg   = document.getElementById('regMsg');
+  if (!name || !user || !email || !pw || !pw2) { showMsg(msg, 'error', 'Please fill in all fields.'); return; }
+  if (pw !== pw2) { showMsg(msg, 'error', '⚠ Passwords do not match.'); return; }
+  if (pw.length < 6) { showMsg(msg, 'error', '⚠ Password must be at least 6 characters.'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showMsg(msg, 'error', '⚠ Enter a valid email.'); return; }
+  if (user === ADMIN_USER) { showMsg(msg, 'error', '⚠ Username not available.'); return; }
+  const users = getUsers();
+  if (users.find(u => u.username === user)) { showMsg(msg, 'error', '⚠ Username already taken.'); return; }
+  if (users.find(u => u.email === email))   { showMsg(msg, 'error', '⚠ Email already registered.'); return; }
+  users.push({ username: user, name, email, pwHash: hashSimple(pw) });
+  saveUsers(users);
+  saveSession({ username: user, name, email, isAdmin: false });
+  showMsg(msg, 'success', '✓ Account created! Welcome, ' + name + '.');
+  setTimeout(() => { closeAuthModal(); applyAuthState(); }, 800);
+}
 
 function doNavLogout() { clearSession(); applyAuthState(); }
+
+function checkPwStrength(pw) {
+  let score = 0;
+  if (pw.length >= 6)  score++;
+  if (pw.length >= 10) score++;
+  if (/[A-Z]/.test(pw) && /[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  const cls = score <= 1 ? 'weak' : score === 2 ? 'medium' : 'strong';
+  for (let i = 1; i <= 4; i++) {
+    const bar = document.getElementById('pb' + i);
+    if (bar) bar.className = 'pw-bar ' + (i <= score ? cls : '');
+  }
+}
 
 function showMsg(el, type, text) { el.textContent = text; el.className = 'auth-msg ' + type; }
 
