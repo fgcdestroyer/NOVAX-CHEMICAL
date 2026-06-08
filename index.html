@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>NOVAX CHEMICAL — Precision. Purity. Power.</title>
 
 <!-- ─── Link Preview Card (OG + Twitter) ─── -->
@@ -37,7 +37,8 @@
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { background: var(--deep); color: var(--white); font-family: 'Outfit', sans-serif; overflow-x: hidden; }
+html { overflow-x: hidden; max-width: 100vw; touch-action: pan-y; }
+body { background: var(--deep); color: var(--white); font-family: 'Outfit', sans-serif; overflow-x: hidden; max-width: 100vw; -webkit-text-size-adjust: 100%; }
 
 /* ─── CANVAS ─── */
 #particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
@@ -2950,7 +2951,25 @@ function showMsg(el, type, text) { el.textContent = text; el.className = 'auth-m
 
 document.addEventListener('DOMContentLoaded', applyAuthState);
 
-// ─── iOS Safari vh fix ───────────────────────────────────────────────────────
+// ─── PREVENT PINCH ZOOM (iOS Safari ignores viewport meta) ──────────────────
+document.addEventListener('gesturestart',  e => e.preventDefault(), { passive: false });
+document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
+document.addEventListener('gestureend',    e => e.preventDefault(), { passive: false });
+document.addEventListener('touchmove', e => {
+  if (e.scale !== undefined && e.scale !== 1) e.preventDefault();
+}, { passive: false });
+
+// ─── LOCK VIEWPORT WIDTH ─────────────────────────────────────────────────────
+// Prevent layout shift when zoom state changes
+(function lockWidth() {
+  const vp = document.querySelector('meta[name=viewport]');
+  function fix() {
+    const w = Math.round(window.screen.width / window.devicePixelRatio);
+    vp.content = `width=${w}, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover`;
+  }
+  fix();
+  window.addEventListener('resize', fix);
+})();
 function setVh() {
   document.documentElement.style.setProperty('--vh', window.innerHeight * 0.01 + 'px');
 }
