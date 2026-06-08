@@ -10,14 +10,14 @@
 <meta property="og:url"         content="https://novaxchemical.vercel.app/">
 <meta property="og:title"       content="NOVAX CHEMICAL — Precision. Purity. Power.">
 <meta property="og:description" content="Wholesale chemical trading & distribution — Ajman Free Zone, UAE. Industrial, pharma & specialty chemicals. HCl, NaOH, SLES, LABSA, Ethanol and more.">
-<meta property="og:image"       content="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/logo.png">
+<meta property="og:image"       content="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/og-card.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:site_name"   content="NOVAX CHEMICAL FZE LLC">
 <meta name="twitter:card"        content="summary_large_image">
 <meta name="twitter:title"       content="NOVAX CHEMICAL — Precision. Purity. Power.">
 <meta name="twitter:description" content="Wholesale chemical trading & distribution — Ajman Free Zone, UAE.">
-<meta name="twitter:image"       content="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/logo.png">
+<meta name="twitter:image"       content="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/og-card.png">
 <meta name="description"         content="Novax Chemical FZE LLC — Licensed chemical trading company in Ajman Free Zone, UAE. Wholesale import & export of industrial, pharma and specialty chemicals.">
 
 <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/logo.png">
@@ -820,13 +820,24 @@ footer {
 }
 .gallery-extra-row .gallery-item { height: 200px; }
 
-/* Gallery — bigger, more images */
-.gallery {
+/* ─── GALLERY GRID ─── */
+.gallery-grid {
   display: grid;
-  grid-template-columns: 1.8fr 1fr 1fr;
-  grid-template-rows: 280px 280px;
-  gap: 1rem;
+  gap: 0.9rem;
+  /* Desktop: 4 columns */
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: 300px 240px 240px 200px;
 }
+/* SLES — spans all 4 cols, row 1 */
+.gg-sles  { grid-column: 1 / -1; grid-row: 1; }
+/* LABSA, Ethanol, CDEA — 3 cols side by side, row 2 */
+.gg-labsa   { grid-column: 1 / 2; grid-row: 2; }
+.gg-ethanol { grid-column: 2 / 3; grid-row: 2; }
+.gg-cdea    { grid-column: 3 / -1; grid-row: 2; }
+/* CP — full width, row 3 */
+.gg-cp { grid-column: 1 / -1; grid-row: 3; }
+/* 4 small tiles — uniform, row 4 */
+.gg-small { grid-row: 4; }
 .gallery-item { position: relative; overflow: hidden; border-radius: 4px; }
 .gallery-item:first-child { grid-row: span 2; }
 .gallery-item img {
@@ -1175,10 +1186,22 @@ footer {
   .admin-add-form .row { flex-direction: column; }
   .gallery-extra-row { grid-template-columns: repeat(2, 1fr) !important; }
 
-  /* GALLERY */
-  .gallery { grid-template-columns: 1fr !important; grid-template-rows: auto !important; }
-  .gallery-item:first-child { grid-row: auto !important; height: 260px !important; }
-  .gallery-item { height: 220px !important; }
+  /* GALLERY — mobile layout */
+  .gallery-grid {
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-rows: 220px 180px 180px 180px 160px !important;
+  }
+  /* SLES: full width row 1 */
+  .gg-sles    { grid-column: 1 / -1 !important; grid-row: 1 !important; }
+  /* LABSA + Ethanol: side by side row 2 */
+  .gg-labsa   { grid-column: 1 / 2 !important; grid-row: 2 !important; }
+  .gg-ethanol { grid-column: 2 / 3 !important; grid-row: 2 !important; }
+  /* CDEA: full width row 3 */
+  .gg-cdea    { grid-column: 1 / -1 !important; grid-row: 3 !important; }
+  /* CP: full width row 4 */
+  .gg-cp      { grid-column: 1 / -1 !important; grid-row: 4 !important; }
+  /* 4 small tiles: 2×2 grid in row 5 */
+  .gg-small   { grid-row: 5 !important; }
   #gallery > div:last-child { grid-template-columns: 1fr 1fr !important; }
 
   /* SERVICES */
@@ -2030,8 +2053,11 @@ footer {
     </div>
   </div>
 
-  <div class="gallery reveal" id="mainGallery">
-    <div class="gallery-item" style="cursor:zoom-in;" onclick="openLightbox(this)">
+  <!-- Gallery grid: desktop 3-col, mobile stack as described -->
+  <div class="gallery-grid reveal" id="mainGallery">
+
+    <!-- Row 1: SLES — full width tall hero -->
+    <div class="gg-sles gallery-item" style="cursor:zoom-in;" onclick="openLightbox(this)">
       <img data-slot="0" data-name="3.png"
         src="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/3.png"
         onerror="this.src='https://images.unsplash.com/photo-1601342630314-8427c38bf5e6?w=900&q=85'"
@@ -2039,7 +2065,9 @@ footer {
       <div class="gallery-item-formula">SLES</div>
       <div class="gallery-item-overlay"><div class="gallery-item-label">SLES — Sodium Laureth Sulfate Drums</div></div>
     </div>
-    <div class="gallery-item">
+
+    <!-- Row 2 col 1: LABSA -->
+    <div class="gg-labsa gallery-item" style="cursor:zoom-in;" onclick="openLightbox(this)">
       <img data-slot="1" data-name="4.png"
         src="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/4.png"
         onerror="this.src='https://images.unsplash.com/photo-1582719508461-905c673771fd?w=700&q=85'"
@@ -2047,7 +2075,9 @@ footer {
       <div class="gallery-item-formula">LABSA</div>
       <div class="gallery-item-overlay"><div class="gallery-item-label">Acid Slurry (LABSA)</div></div>
     </div>
-    <div class="gallery-item">
+
+    <!-- Row 2 col 2: Ethanol -->
+    <div class="gg-ethanol gallery-item" style="cursor:zoom-in;" onclick="openLightbox(this)">
       <img data-slot="2" data-name="5.png"
         src="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/5.png"
         onerror="this.src='https://images.unsplash.com/photo-1559757175-5700dde675bc?w=700&q=85'"
@@ -2055,7 +2085,9 @@ footer {
       <div class="gallery-item-formula">C₂H₅OH</div>
       <div class="gallery-item-overlay"><div class="gallery-item-label">Ethanol — Industrial Grade</div></div>
     </div>
-    <div class="gallery-item">
+
+    <!-- Row 2 col 3: CDEA -->
+    <div class="gg-cdea gallery-item" style="cursor:zoom-in;" onclick="openLightbox(this)">
       <img data-slot="3" data-name="6.png"
         src="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/6.png"
         onerror="this.src='https://images.unsplash.com/photo-1616400619175-5beda3a17896?w=700&q=85'"
@@ -2063,7 +2095,9 @@ footer {
       <div class="gallery-item-formula">CDEA</div>
       <div class="gallery-item-overlay"><div class="gallery-item-label">CDEA — Cocamide Diethanolamine</div></div>
     </div>
-    <div class="gallery-item">
+
+    <!-- Row 3 full: Chlorinated Paraffin -->
+    <div class="gg-cp gallery-item" style="cursor:zoom-in;" onclick="openLightbox(this)">
       <img data-slot="4" data-name="7.png"
         src="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/7.png"
         onerror="this.src='https://images.unsplash.com/photo-1584467735871-8e3a9ced2a4e?w=700&q=85'"
@@ -2071,19 +2105,17 @@ footer {
       <div class="gallery-item-formula">CP</div>
       <div class="gallery-item-overlay"><div class="gallery-item-label">Chlorinated Paraffin</div></div>
     </div>
-  </div>
 
-  <!-- Second gallery row -->
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1rem;margin-top:1rem;" id="subGallery">
-    <div class="gallery-item" style="height:200px;cursor:zoom-in;" onclick="openLightbox(this)">
+    <!-- Row 4: 4 uniform small tiles -->
+    <div class="gg-small gallery-item" style="cursor:zoom-in;" onclick="openLightbox(this)">
       <img data-slot="5" data-name="8.png"
         src="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/8.png"
         onerror="this.src='https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=600&q=85'"
-        alt="Industrial Chemical Drums" style="object-position:center center;">
+        alt="Bulk Chemical Drums">
       <div class="gallery-item-formula">IBC</div>
       <div class="gallery-item-overlay"><div class="gallery-item-label">Bulk Chemical Drums</div></div>
     </div>
-    <div class="gallery-item" style="height:200px;cursor:zoom-in;" onclick="openLightbox(this)">
+    <div class="gg-small gallery-item" style="cursor:zoom-in;" onclick="openLightbox(this)">
       <img data-slot="6" data-name="9.png"
         src="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/9.png"
         onerror="this.src='https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=85'"
@@ -2091,7 +2123,7 @@ footer {
       <div class="gallery-item-formula">BULK</div>
       <div class="gallery-item-overlay"><div class="gallery-item-label">Bulk Liquid Storage</div></div>
     </div>
-    <div class="gallery-item" style="height:200px;cursor:zoom-in;" onclick="openLightbox(this)">
+    <div class="gg-small gallery-item" style="cursor:zoom-in;" onclick="openLightbox(this)">
       <img data-slot="7" data-name="10.png"
         src="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/10.png"
         onerror="this.src='https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=600&q=85'"
@@ -2099,7 +2131,7 @@ footer {
       <div class="gallery-item-formula">QC</div>
       <div class="gallery-item-overlay"><div class="gallery-item-label">Quality Control Lab</div></div>
     </div>
-    <div class="gallery-item" style="height:200px;cursor:zoom-in;" onclick="openLightbox(this)">
+    <div class="gg-small gallery-item" style="cursor:zoom-in;" onclick="openLightbox(this)">
       <img data-slot="8" data-name="11.png"
         src="https://raw.githubusercontent.com/fgcdestroyer/NOVAX-CHEMICAL/main/images/11.png"
         onerror="this.src='https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&q=85'"
@@ -2107,6 +2139,7 @@ footer {
       <div class="gallery-item-formula">UAE</div>
       <div class="gallery-item-overlay"><div class="gallery-item-label">Ajman Free Zone HQ</div></div>
     </div>
+
   </div>
 
   <!-- Extra images added via manager appear here -->
@@ -3063,7 +3096,7 @@ function saveEditPopup() {
   galleryImages[_editingIndex].label   = label;
   galleryImages[_editingIndex].formula = formula;
   // Update live gallery item
-  const allItems = document.querySelectorAll('#mainGallery .gallery-item, #subGallery .gallery-item, #galleryExtraRow .gallery-item');
+  const allItems = document.querySelectorAll('#mainGallery .gallery-item, #galleryExtraRow .gallery-item');
   if (allItems[_editingIndex]) {
     const lbl = allItems[_editingIndex].querySelector('.gallery-item-label');
     const frm = allItems[_editingIndex].querySelector('.gallery-item-formula');
@@ -3077,7 +3110,7 @@ function adminDeleteImage(idx) {
   if (!confirm(`Remove image ${galleryImages[idx].num}.png from the gallery?`)) return;
   galleryImages.splice(idx, 1);
   // Remove the corresponding live gallery item
-  const allItems = document.querySelectorAll('#mainGallery .gallery-item, #subGallery .gallery-item, #galleryExtraRow .gallery-item');
+  const allItems = document.querySelectorAll('#mainGallery .gallery-item, #galleryExtraRow .gallery-item');
   if (allItems[idx]) allItems[idx].remove();
   buildAdminGrid();
   updateImgCount();
@@ -3120,7 +3153,7 @@ function updateNextNumHint() {
   if (el) el.textContent = next;
 }
 function updateImgCount() {
-  const count = document.querySelectorAll('#mainGallery .gallery-item, #subGallery .gallery-item, #galleryExtraRow .gallery-item').length;
+  const count = document.querySelectorAll('#mainGallery .gallery-item, #galleryExtraRow .gallery-item').length;
   document.querySelectorAll('#imgCount').forEach(el => el.textContent = count);
 }
 
