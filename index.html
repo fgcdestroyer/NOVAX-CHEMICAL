@@ -2644,34 +2644,120 @@ function stripMd(t) {
     .trim();
 }
 
-async function getAIReply(userMsg) {
+// ─── LOCAL REPLY ENGINE ──────────────────────────────────────────────────────
+const REPLIES = [
+  // Greetings
+  { match: /^(hi|hello|hey|salam|salaam|helo|howdy|sup|yo|assalam|good morning|good afternoon|good evening|greetings)/i,
+    reply: () => "Hey! Welcome to Novax Chemical. I'm your assistant here — happy to help with product info, quotes, delivery or anything about our company. What can I do for you?" },
+  { match: /how are you|how r u|how are u|how do you do|you good|u good/i,
+    reply: () => "Doing great, thanks for asking! Ready to help you with whatever you need. Are you looking for a product, a quote, or some company info?" },
+  { match: /^(thanks|thank you|thank u|thx|ty|appreciated|cheers|great|perfect|awesome|nice|cool|ok cool|got it|understood)/i,
+    reply: () => "You're welcome! Feel free to ask anything else — we're always here to help." },
+  { match: /bye|goodbye|see you|see ya|cya|take care/i,
+    reply: () => "Thanks for reaching out! Don't hesitate to come back anytime. You can also WhatsApp us at +971 54 704 9945 for quick replies." },
+  { match: /who are you|what are you|what is novax|tell me about|about novax|about your company|about you/i,
+    reply: () => "Novax Chemical FZE LLC is a licensed chemical trading company based in the Ajman Free Zone, UAE. We import and export industrial, pharmaceutical, agricultural and specialty chemicals to clients worldwide. From acids and solvents to surfactants and fertilizers — we cover the full spectrum." },
+
+  // Location
+  { match: /location|where are you|where is|address|office|headquarter|based|ajman|uae|situated/i,
+    reply: () => "We're located at the 26th Floor, Amber Gem Tower, Ajman Free Zone, UAE. You can reach us by email at novaxchemical@gmail.com or WhatsApp us at +971 54 704 9945." },
+
+  // Contact
+  { match: /contact|email|phone|whatsapp|call|reach|number|get in touch/i,
+    reply: () => "You can reach us at:\nEmail: novaxchemical@gmail.com\nWhatsApp: +971 54 704 9945\nWe're available during business hours and typically reply within a few hours." },
+
+  // Products — general
+  { match: /products?|what do you sell|what do you have|catalogue|catalog|list|chemicals?|supply|offer|stock/i,
+    reply: () => "We supply a wide range of chemicals across these categories:\n\nAcids — HCl, Sulphuric Acid, Phosphoric, Citric, LABSA, Acetic, Nitric, Formic\nAlkalis — Caustic Soda (NaOH), Soda Ash, Potassium Hydroxide\nSolvents — IPA, Ethanol, Methanol, Acetone, Xylene\nSurfactants — SLES, SLS, CDEA, CAPB\nDisinfectants — Hydrogen Peroxide, Sodium Hypochlorite, TCCA\nIndustrial — Chlorinated Paraffin, Glycerine, MEG/DEG, Paraffin Wax, TiO₂\nFertilizers — Urea, Zinc Sulphate\n\nSearch the full portfolio on our Products page." },
+
+  // Specific products
+  { match: /\b(hcl|hydrochloric|muriatic)\b/i,
+    reply: () => "We supply Hydrochloric Acid (HCl / Muriatic Acid) in various concentrations — typically 30-33% and 35%. Available in drums (200L), IBC (1000L) or bulk tankers. Contact us at novaxchemical@gmail.com with your required quantity and destination for pricing." },
+  { match: /\b(naoh|caustic soda|sodium hydroxide)\b/i,
+    reply: () => "Caustic Soda (NaOH) is available in flakes, pearls and liquid form. Widely used in soap making, textiles, water treatment and food processing. Contact us with quantity and destination for a price — novaxchemical@gmail.com or WhatsApp +971 54 704 9945." },
+  { match: /\b(sles|sodium laureth)\b/i,
+    reply: () => "We supply SLES (Sodium Laureth Sulfate) — a key ingredient in shampoos, detergents and cleaning products. Available in drums and IBC tanks. Send us your quantity and delivery location for a quote." },
+  { match: /\b(labsa|acid slurry|linear alkyl)\b/i,
+    reply: () => "LABSA (Acid Slurry / Linear Alkylbenzene Sulphonic Acid) is available for detergent and soap manufacturing. Contact us at novaxchemical@gmail.com for pricing and availability." },
+  { match: /\b(ethanol|ethyl alcohol|industrial alcohol)\b/i,
+    reply: () => "We supply industrial grade Ethanol — suitable for sanitizers, pharmaceutical, cosmetic and industrial use. Available in drums (200L) and IBC. Send your quantity and country to novaxchemical@gmail.com." },
+  { match: /\b(cdea|cocamide|diethanolamine)\b/i,
+    reply: () => "CDEA (Cocamide Diethanolamine) is used as a foam booster and thickener in shampoos and detergents. Available in drums. Get in touch at novaxchemical@gmail.com for pricing." },
+  { match: /\b(chlorinated paraffin|cp wax|cp 52|cp 70)\b/i,
+    reply: () => "Chlorinated Paraffin (CP) is available in different grades — CP-52, CP-70. Used as a flame retardant, plasticizer and lubricant additive. Contact us for quantity pricing." },
+  { match: /\b(ipa|isopropyl|isopropanol)\b/i,
+    reply: () => "Isopropyl Alcohol (IPA) is available in 99.9% purity — used in sanitizers, pharmaceuticals, electronics cleaning and cosmetics. Available in drums. Email novaxchemical@gmail.com for a quote." },
+  { match: /\b(h2so4|sulphuric|sulfuric)\b/i,
+    reply: () => "Sulphuric Acid (H₂SO₄) is available in various grades and concentrations. Widely used in industrial processes, batteries and chemical manufacturing. Contact us with your specs for pricing." },
+  { match: /\b(hydrogen peroxide|h2o2)\b/i,
+    reply: () => "Hydrogen Peroxide is available in 35%, 50% and 60% concentrations. Used for bleaching, disinfection and chemical synthesis. WhatsApp us at +971 54 704 9945 for pricing." },
+  { match: /\b(glycerin|glycerine|glycerol)\b/i,
+    reply: () => "Glycerine (Glycerol) is available in pharmaceutical and industrial grades. Used in cosmetics, food, pharmaceuticals and industrial applications. Email novaxchemical@gmail.com for a quote." },
+  { match: /\b(methanol|methyl alcohol)\b/i,
+    reply: () => "Methanol is available for industrial use — fuel, solvents, chemical synthesis. Available in drums and IBC. Contact us at novaxchemical@gmail.com with quantity and destination." },
+  { match: /\b(acetone|propanone)\b/i,
+    reply: () => "Acetone is available in industrial grade — used in paints, coatings, cleaning and pharmaceuticals. Available in drums. Get a quote at novaxchemical@gmail.com." },
+  { match: /\b(soda ash|sodium carbonate|na2co3)\b/i,
+    reply: () => "Soda Ash (Sodium Carbonate) is available in light and dense grades. Used in glass, detergents, water treatment and chemicals. Contact us for pricing." },
+  { match: /\b(urea|fertilizer|fertiliser)\b/i,
+    reply: () => "We supply Urea and other chemical fertilizers including Zinc Sulphate and Magnesium Sulphate. Contact us at novaxchemical@gmail.com with your quantity and destination." },
+
+  // Quote / pricing
+  { match: /quote|price|pricing|cost|how much|rate|tariff|offer me|give me a price/i,
+    reply: () => "Pricing depends on the product, quantity, grade and destination. To get a quote, please send us:\n\n1. Product name\n2. Quantity needed\n3. Delivery country or port\n\nEmail: novaxchemical@gmail.com\nWhatsApp: +971 54 704 9945\n\nWe typically respond within 24 hours." },
+
+  // Export / shipping
+  { match: /export|import|ship|shipping|delivery|freight|logistics|international|worldwide|global|customs|incoterm/i,
+    reply: () => "Yes, we export internationally. We handle shipments worldwide with proper documentation including COA, MSDS, packing lists and customs clearance support. Share your destination country and we'll provide freight details." },
+
+  // MOQ
+  { match: /moq|minimum order|minimum quantity|how much minimum|smallest order/i,
+    reply: () => "Our minimum order is typically 1 drum (200L or 250kg depending on the product). For bulk pricing, full container loads (20ft or 40ft FCL) are recommended. Contact us to discuss your specific requirement." },
+
+  // Packing
+  { match: /packing|packaging|drum|ibc|container|bag|flexi|tanker|how is it packed/i,
+    reply: () => "We offer flexible packaging options: drums (200L / 250kg), IBC tanks (1000L), flexi bags, and bulk tankers — depending on the product and quantity. Let us know what you need." },
+
+  // Documents / certificates
+  { match: /coa|msds|sds|certificate|document|analysis|safety data|quality|test report/i,
+    reply: () => "Yes — Certificate of Analysis (COA) and Safety Data Sheet (MSDS/SDS) are provided with every shipment. Additional documentation like packing lists, fumigation certificates and country-of-origin certificates can be arranged on request." },
+
+  // Delivery time
+  { match: /delivery time|lead time|how long|when can|timeline|dispatch|ready stock/i,
+    reply: () => "Delivery time depends on product availability and destination. Most orders are dispatched within 3–7 business days for in-stock items. International sea freight typically takes 10–25 days depending on the destination port." },
+
+  // Payment
+  { match: /payment|pay|bank transfer|tt|lc|letter of credit|advance|terms|wire/i,
+    reply: () => "We accept bank transfer (T/T) and Letter of Credit (L/C). Payment terms depend on order size and customer history. Contact us at novaxchemical@gmail.com to discuss terms for your order." },
+
+  // Default fallback
+  { match: /.*/,
+    reply: (msg) => `Thanks for your message! For "${msg}" — our team can give you the most accurate answer directly. Please reach out via:\n\nWhatsApp: +971 54 704 9945\nEmail: novaxchemical@gmail.com\n\nWe respond within a few hours during business days.` }
+];
+
+function getLocalReply(userMsg) {
+  const msg = userMsg.trim();
+  for (const r of REPLIES) {
+    if (r.match.test(msg)) {
+      return typeof r.reply === 'function' ? r.reply(msg) : r.reply;
+    }
+  }
+  return "I'm not sure about that — please WhatsApp us at +971 54 704 9945 or email novaxchemical@gmail.com and we'll get back to you shortly.";
+}
+
+function getAIReply(userMsg) {
   const typing = document.getElementById('chatTyping');
   typing.classList.add('show');
   const msgs = document.getElementById('chatMessages');
   msgs.scrollTop = msgs.scrollHeight;
 
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 300,
-        system: SYSTEM_PROMPT,
-        messages: chatHistory
-      })
-    });
-
-    const data = await response.json();
-    const reply = data.content?.[0]?.text || "I'm having trouble connecting right now. Please email us at novaxchemical@gmail.com for assistance.";
+  // Simulate a brief typing delay for natural feel
+  setTimeout(() => {
+    const reply = getLocalReply(userMsg);
     chatHistory.push({ role: 'assistant', content: reply });
     typing.classList.remove('show');
     addAIMsg(reply);
-
-  } catch (err) {
-    typing.classList.remove('show');
-    addAIMsg("I'm unable to connect right now. Please reach us directly at <strong>novaxchemical@gmail.com</strong> and we'll respond promptly!");
-  }
+  }, 600 + Math.random() * 500);
 }
 
 // Allow Enter key in chat
@@ -3403,9 +3489,7 @@ Export → yes worldwide.
 MOQ → 1 drum minimum.
 Keep replies 2-4 sentences. No markdown ever.`;
 
-let dapHistory = [];
-
-async function dapSend() {
+function dapSend() {
   const input = document.getElementById('dapInput');
   const msgs  = document.getElementById('dapMsgs');
   const text  = input.value.trim();
@@ -3425,36 +3509,15 @@ async function dapSend() {
   msgs.appendChild(typing);
   msgs.scrollTop = msgs.scrollHeight;
 
-  dapHistory.push({role:'user', content: text});
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: DAP_SYSTEM,
-        messages: dapHistory
-      })
-    });
-    const data = await res.json();
-    const reply = data.content?.map(b => b.text||'').join('') || 'Sorry, I couldn\'t get a response.';
-    dapHistory.push({role:'assistant', content: reply});
-
+  setTimeout(() => {
+    const reply = getLocalReply(text);
     typing.remove();
     const bDiv = document.createElement('div');
     bDiv.className = 'dap-msg bot';
-    bDiv.innerHTML = stripMd(reply).replace(/\n/g, '<br>');
+    bDiv.innerHTML = reply.replace(/\n/g, '<br>');
     msgs.appendChild(bDiv);
-  } catch {
-    typing.remove();
-    const bDiv = document.createElement('div');
-    bDiv.className = 'dap-msg bot';
-    bDiv.textContent = 'Connection error. Please try again.';
-    msgs.appendChild(bDiv);
-  }
-  msgs.scrollTop = msgs.scrollHeight;
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 500 + Math.random() * 400);
 }
 </script>
 </body>
